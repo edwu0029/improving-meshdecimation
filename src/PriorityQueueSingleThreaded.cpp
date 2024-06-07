@@ -20,11 +20,11 @@ PriorityQueueSingleThreaded::PriorityQueueSingleThreaded(int countVertices) : m_
 	m_last = m_size - 1;
 	m_repairCount = 0;
 #ifndef SINGLE_THREADED_LOADING
-	m_vertexLocks = std::vector<CRITICAL_SECTION>(m_size);
+	m_vertexLocks = std::vector<pthread_mutex_t>(m_size);
 	int spincount = 0x01001000;
 	for (int i = 0; i < m_size; i++) {
 		if (!InitializeCriticalSectionAndSpinCount(&m_vertexLocks[i], spincount))
-			__debugbreak();
+			// __debugbreak();
 	}
 #endif
 
@@ -53,7 +53,7 @@ int PriorityQueueSingleThreaded::pop()
 			m_tmpError[vertexId] = newError;
 #else
 			if (m_tmpError[vertexId] >= 1000000000000000000000000.0)
-				__debugbreak();
+				// __debugbreak();
 			m_tmpError[vertexId] +=  10000000000000000000000.0;
 #endif
 			int nextNodeId = 0;
@@ -92,9 +92,9 @@ void PriorityQueueSingleThreaded::update(volatile int vertexId)
 
 	volatile int nodeId = m_nodeLookup[vertexId];
 	if (nodeId < 0)
-		__debugbreak();
+		// __debugbreak();
 	if (nodeId > m_last)
-		__debugbreak();
+		// __debugbreak();
 	if (directionUp) {
 		bool finished = false;
 		while (!finished)
@@ -102,7 +102,7 @@ void PriorityQueueSingleThreaded::update(volatile int vertexId)
 			finished = repairUp(nodeId);
 			nodeId = PARENT_NODE_ID;
 			/*if ((m_nodeLookup[vertexId] != nodeId) && !finished)
-				__debugbreak();*/
+				// __debugbreak();*/
 		}
 		//m_locks[nodeId].clear(std::memory_order_release);
 	}
@@ -133,7 +133,7 @@ void PriorityQueueSingleThreaded::debugCheckHeap()
 			//float errdbp = m_nodes[(i - 1) / 2].getDebugError();
 			volatile float errvc = m_mesh.getVertexError(m_nodes[nodeId]);
 			volatile float errvp = m_mesh.getVertexError(m_nodes[parentNodeId]);
-			__debugbreak();
+			// __debugbreak();
 		}
 		if (m_tmpError[m_nodes[nodeId]] != m_mesh.getVertexError(m_nodes[nodeId]) && m_tmpError[m_nodes[nodeId]] < 100000000000000000000.0)
 		{
@@ -145,7 +145,7 @@ void PriorityQueueSingleThreaded::debugCheckHeap()
 			//float errdbp = m_nodes[(i - 1) / 2].getDebugError();
 			volatile float errvc = m_mesh.getVertexError(m_nodes[nodeId]);
 			volatile float errvp = m_mesh.getVertexError(m_nodes[parentNodeId]);
-			__debugbreak();
+			// __debugbreak();
 		}
 	}
 }

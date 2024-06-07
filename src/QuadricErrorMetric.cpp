@@ -43,7 +43,7 @@ void QuadricErrorMetric::init(Vertex& v)
 				volatile int i1 = faceIndices[currentPos];
 				volatile int i2 = faceIndices[currentPos + 1];
 				volatile int i3 = faceIndices[currentPos + 2];
-				__debugbreak();
+				// __debugbreak();
 			}
 #endif
 #ifndef TRIANGLE_INDICES
@@ -91,7 +91,7 @@ void QuadricErrorMetric::init(Vertex& v)
 			}
 #ifndef NO_DEBUG_CHECKS
 			else {
-				//__debugbreak();
+				//// __debugbreak();
 			}
 #endif
 			if (++ctr != slotSize) {
@@ -136,7 +136,7 @@ void QuadricErrorMetric::init(Vertex& v)
 				if (error < 0.f)
 				{
 					// Ignore negative errors that happen because of precision errors 
-					//__debugbreak();
+					//// __debugbreak();
 				}
 				if (error < m_error)
 				{
@@ -233,7 +233,7 @@ float QuadricErrorMetric::setNextBestError(Vertex& v)
 					if (error < 0.f)
 					{
 						// Ignore negative errors that happen because of precision errors 
-						//__debugbreak();
+						//// __debugbreak();
 					}
 					if (error < m_error)
 					{
@@ -312,7 +312,7 @@ void QuadricErrorMetric::update(Vertex& v)
 					if (error < 0.f)
 					{
 						// Ignore negative errors that happen because of precision errors 
-						//__debugbreak();
+						//// __debugbreak();
 					}
 					if (error < m_error)
 					{
@@ -344,7 +344,7 @@ void QuadricErrorMetric::update(Vertex& v)
 #ifndef NO_DEBUG_CHECKS
 	if (m_index == -1) {
 		{
-			__debugbreak();
+			// __debugbreak();
 			volatile int startPos = (slotSize + 1) * v.getVertexIndex();
 			volatile int start = adjacentVerticesIndices[startPos];
 			volatile int currentPos = startPos + 1;
@@ -365,7 +365,7 @@ void QuadricErrorMetric::update(Vertex& v)
 					if (error < 0.f)
 					{
 						// Ignore negative errors that happen because of precision errors 
-						//__debugbreak();
+						//// __debugbreak();
 					}
 					if (error < m_error)
 					{
@@ -412,7 +412,7 @@ void QuadricErrorMetric::updateSingle(int newVertex)
 		if (error < 0.f)
 		{
 			// Ignore negative errors that happen because of precision errors 
-			//__debugbreak();
+			//// __debugbreak();
 		}
 		if (error < m_error)
 		{

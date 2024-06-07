@@ -1,5 +1,5 @@
 
-#include <windows.h>
+// #include <windows.h>
 #include <chrono>
 #include <algorithm>
 #include <string>
@@ -179,8 +179,8 @@ int main()
     //SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS); // Needs to run in admin mode otherwise gets only high_priority
 
 
-    DWORD dwPriClass = GetPriorityClass(GetCurrentProcess());
-    std::cout << dwPriClass << std::endl;
+    // unsigned int dwPriClass = GetPriorityClass(GetCurrentProcess());
+    // std::cout << dwPriClass << std::endl;
 
     std::vector<std::chrono::microseconds> iterationTimesInit(countIterations);
     std::vector<std::chrono::microseconds> iterationTimesDecimation(countIterations);

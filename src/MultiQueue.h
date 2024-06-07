@@ -1,7 +1,10 @@
 #pragma once
 #include <atomic>
 #include <vector>
-#include <Windows.Foundation.h>
+// #include <Windows.Foundation.h>
+#include <xmmintrin.h>
+#include <mmintrin.h>
+
 #include "defines.h"
 
 class ParallelMesh;
@@ -19,11 +22,11 @@ public:
 
 #ifndef SINGLE_THREADED_LOADING
 	void lock(int vertexId) {
-		EnterCriticalSection(&m_vertexLocks[vertexId]);
+		pthread_mutex_lock(&m_vertexLocks[vertexId]);
 	}
 
 	void unlock(int vertexId) {
-		LeaveCriticalSection(&m_vertexLocks[vertexId]);
+		pthread_mutex_unlock(&m_vertexLocks[vertexId]);
 	}
 #endif // !SINGLE_THREADED_LOADING
 
@@ -33,8 +36,8 @@ public:
 
 	inline void decreaseAdjacentCollapses(int vertexId) {
 		m_adjacentToCollapses[vertexId]--;
-		if(m_adjacentToCollapses[vertexId] < 0)
-			__debugbreak();
+		if(m_adjacentToCollapses[vertexId] < 0){}
+			// __debugbreak();
 	}
 
 	inline bool getAdjacentCollapses(int vertexId) {
@@ -66,9 +69,9 @@ private:
 		return index + (queueId * m_queueSize);
 	}
 #ifndef SINGLE_THREADED_LOADING
-	std::vector<CRITICAL_SECTION> m_vertexLocks; // for initialisation
+	std::vector<pthread_mutex_t> m_vertexLocks; // for initialisation
 #endif
-	std::vector<CRITICAL_SECTION> m_queueLocks; // Lock per Queue
+	std::vector<pthread_mutex_t> m_queueLocks; // Lock per Queue
 
 	int m_countQueues;
 	int m_queueSize; // Amount of Vertices in one queue

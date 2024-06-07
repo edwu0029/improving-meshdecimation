@@ -64,15 +64,15 @@ public:
 #ifndef SINGLE_THREADED
 		m_priorityStructure->decreaseAdjacentCollapses(vertexId);
 #else
-		__debugbreak();
+		// __debugbreak();
 #endif // !SINGLE_THREADED
 	}
 
 	void debugCheckData(int activeException = -1);
 	void reduceVertices(int finalSize, int countThreads); // Deletes the unused Vertices after decimation and updates the Vertex/Triangle Ids
 private:
-	void addTriangle(int currentIndex, int index1, int index2, int a, int b, int c, CRITICAL_SECTION& csF, CRITICAL_SECTION& csV, std::vector<std::pair<int, int>>& surplusVertices, std::vector<std::pair<int, glm::ivec3>>& surplusFaces);
-	void addTriangleIndex(int triangleIndex, int currentIndex, int index1, int index2, int a, int b, int c, CRITICAL_SECTION& csF, CRITICAL_SECTION& csV, std::vector<std::pair<int, int>>& surplusVertices, std::vector<std::pair<int, int>>& surplusFaces);
+	void addTriangle(int currentIndex, int index1, int index2, int a, int b, int c, pthread_mutex_t& csF, pthread_mutex_t& csV, std::vector<std::pair<int, int>>& surplusVertices, std::vector<std::pair<int, glm::ivec3>>& surplusFaces);
+	void addTriangleIndex(int triangleIndex, int currentIndex, int index1, int index2, int a, int b, int c, pthread_mutex_t& csF, pthread_mutex_t& csV, std::vector<std::pair<int, int>>& surplusVertices, std::vector<std::pair<int, int>>& surplusFaces);
 
 
 	ParallelMesh() {}

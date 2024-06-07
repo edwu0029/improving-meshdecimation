@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <Windows.Foundation.h>
+// #include <Windows.Foundation.h>
 class ParallelMesh;
 
 // A fast single threaded priority queue implementation for mesh decimation
@@ -15,11 +15,11 @@ public:
 	void debugCheckHeap(); // Checks if the Heap is still valid
 #ifndef SINGLE_THREADED_LOADING
 	void lock(int vertexId) {
-		EnterCriticalSection(&m_vertexLocks[vertexId]);
+		pthread_mutex_lock(&m_vertexLocks[vertexId]);
 	}
 
 	void unlock(int vertexId) {
-		LeaveCriticalSection(&m_vertexLocks[vertexId]);
+		pthread_mutex_unlock(&m_vertexLocks[vertexId]);
 	}
 #endif
 	std::vector<int>& getNodes() {
@@ -30,7 +30,7 @@ private:
 	int repairDown(int nodeId);
 	bool repairUp(int nodeId);
 #ifndef SINGLE_THREADED_LOADING
-	std::vector<CRITICAL_SECTION> m_vertexLocks; // for initialisation
+	std::vector<pthread_mutex_t> m_vertexLocks; // for initialisation
 #endif
 	int m_size;
 	std::vector<float> m_tmpError; // A temporary error for every vertex used to maintain the structure

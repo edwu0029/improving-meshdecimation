@@ -48,7 +48,7 @@ namespace MeshMetrics {
 			aVerts.insert({ verticesA[a], a });
 		}
 
-		std::atomic<int> sameVertices = 0;
+		std::atomic<int> sameVertices(0);
 //#pragma omp parallel for num_threads(32)
 		for (int b = 0; b < verticesB.size(); b++) {
 			if (aVerts.contains(verticesB[b])) {
@@ -66,7 +66,7 @@ namespace MeshMetrics {
 			aFaces.insert({ facesA[a], a });
 		}
 
-		std::atomic<int> sameFaces = 0;
+		std::atomic<int> sameFaces(0);
 //#pragma omp parallel for num_threads(32) schedule(guided)		
 		for(int b = 0; b < facesB.size(); b++) {
 			if(aFaces.contains(glm::ivec3(mapBtoA[facesB[b].x], mapBtoA[facesB[b].y], mapBtoA[facesB[b].z]))) 

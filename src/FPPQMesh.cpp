@@ -70,7 +70,7 @@ int FPPQMesh::pop()
 			vertexId = m_nodes[correctNodeId(popIndex)];
 			if(m_nodeLookup[vertexId] == -1) {
 				unlock(popIndex);
-				__debugbreak();
+				// __debugbreak();
 				popIncreaseCount++;
 				vertexId = -1;
 			}
@@ -141,7 +141,7 @@ int FPPQMesh::pop()
 
 #else
 						if(m_tmpError[vertexId] >= 1000000000000000000000000.0)
-							__debugbreak();
+							// __debugbreak();
 						m_notRepairedUp[vertexId] += 1;
 						m_tmpError[vertexId] += 10000000000000000000000.0;
 

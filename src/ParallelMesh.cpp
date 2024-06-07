@@ -87,15 +87,19 @@ bool ParallelMesh::loadFromObj(std::filesystem::path path) {
 #endif // MULTI_QUEUE
 
 
+	//INTERESTING
+	//should be able to ignore since its irrelevant for multiprocessor systems anyways
+	pthread_mutex_t csF;
+	pthread_mutex_init(&csF, NULL);
+	// if (!InitializeCriticalSectionAndSpinCount(&csF,
+	// 	0x01001000))
+		// return false;
+	pthread_mutex_t csV;
+	pthread_mutex_init(&csV, NULL);
+	// if (!InitializeCriticalSectionAndSpinCount(&csV,
+	// 	0x01001000))
+	// 	return false;
 
-	CRITICAL_SECTION csF;
-	if (!InitializeCriticalSectionAndSpinCount(&csF,
-		0x01001000))
-		return false;
-	CRITICAL_SECTION csV;
-	if (!InitializeCriticalSectionAndSpinCount(&csV,
-		0x01001000))
-		return false;
 	std::vector<std::pair<int, int>> surplusVertices;
 	int n = (static_cast<int>(vertices.size()) / 3) * (slotSize + 1);
 	m_adjacentVerticesIndices = std::vector<int>(n, -1); // 1 continue 10 slots
@@ -351,12 +355,12 @@ void ParallelMesh::debugCheckData(int activeException)
 					for (int j = 0; j < slotSize; j++) {
 						if (!finished) {
 							if (std::find(foundVertices.begin(), foundVertices.end(), adjacentVertices[startPos + 1 + j]) != foundVertices.end()) {
-								__debugbreak(); // Element multiple times in vector
+								// __debugbreak(); // Element multiple times in vector
 							}
 							else {
 								if (adjacentVertices[startPos + 1 + j] != -1) {
 									if (activeException != adjacentVertices[startPos + 1 + j] && !m_vertices[adjacentVertices[startPos + 1 + j]].isActive())// nonActive Vertex in list
-										__debugbreak();
+										// __debugbreak();
 									foundVertices.push_back(adjacentVertices[startPos + 1 + j]);
 									isValidAdjacentVertex.push_back(false);
 								}
@@ -365,8 +369,8 @@ void ParallelMesh::debugCheckData(int activeException)
 							}
 						}
 						else {
-							if (adjacentVertices[startPos + 1 + j] != -1)
-								__debugbreak(); // not clean
+							if (adjacentVertices[startPos + 1 + j] != -1){}
+								// __debugbreak(); // not clean
 						}
 					}
 					startPos = next;
@@ -377,78 +381,84 @@ void ParallelMesh::debugCheckData(int activeException)
 				auto& faceIndices = ParallelMesh::getInstance().m_faceIndices;
 				int startPos = (3*slotSize + 1) * i;
 				/*if (startPos == 4654)
-					__debugbreak();*/
+					// __debugbreak();*/
 				int next;
 				bool finished = false;
 				int numFaces = 0;
 				while (startPos != -1) {
 					next = faceIndices[startPos];
 					for (int j = 0; j < slotSize; j++) {
-						if (!finished) {							
+						if (!finished) {						
+								
 							if (faceIndices[startPos + 1 + 3 * j] != -1) {
+								/*
 								if (faceIndices[startPos + 1 + 3 * j + 1] == -1)
-									__debugbreak(); // not clean
+									// __debugbreak(); // not clean
 								else if (faceIndices[startPos + 1 + 3 * j + 2] == -1)
-									__debugbreak(); // not clean
+									// __debugbreak(); // not clean
 								else if (faceIndices[startPos + 1 + 3 * j] == faceIndices[startPos + 1 + 3 * j + 1] || faceIndices[startPos + 1 + 3 * j] == faceIndices[startPos + 1 + 3 * j + 2] || faceIndices[startPos + 1 + 3 * j + 2] == faceIndices[startPos + 1 + 3 * j + 1])
-									__debugbreak();
+									// __debugbreak();
+								*/
 								numFaces++;
 								auto foundVertex = std::find(foundVertices.begin(), foundVertices.end(), faceIndices[startPos + 1 + 3 * j]);
 								if (foundVertex != foundVertices.end()) {
 									isValidAdjacentVertex[foundVertex - foundVertices.begin()] = true;
 								}
 								else {
-									__debugbreak();
+									// __debugbreak();
 								}
 								foundVertex = std::find(foundVertices.begin(), foundVertices.end(), faceIndices[startPos + 1 + 3 * j + 1]);
 								if (foundVertex != foundVertices.end()) {
 									isValidAdjacentVertex[foundVertex - foundVertices.begin()] = true;
 								}
 								else {
-									__debugbreak();
+									// __debugbreak();
 								}
 								foundVertex = std::find(foundVertices.begin(), foundVertices.end(), faceIndices[startPos + 1 + 3 * j + 2]);
 								if (foundVertex != foundVertices.end()) {
 									isValidAdjacentVertex[foundVertex - foundVertices.begin()] = true;
 								}
 								else {
-									__debugbreak();
+									// __debugbreak();
 								}
+								
 							}
 							else
 								finished = true;
 							
 						}
 						else {
+							/*
 							if (faceIndices[startPos + 1 + 3 * j] != -1)
-								__debugbreak(); // not clean
+								// __debugbreak(); // not clean
 							if (faceIndices[startPos + 1 + 3 * j + 1] != -1)
-								__debugbreak(); // not clean
+								// __debugbreak(); // not clean
 							if (faceIndices[startPos + 1 + 3 * j + 2] != -1)
-								__debugbreak(); // not clean
+								// __debugbreak(); // not clean
+							*/
 						}
 					}
 					startPos = next;
 				}
-				if (numFaces < 3)
-					__debugbreak();
+				if (numFaces < 3){}
+					// __debugbreak();
 			}
 			for (bool b : isValidAdjacentVertex) {
-				if (!b)
-					__debugbreak();
+				if (!b){}
+					// __debugbreak();
 			}
 		}
 	}
 }
 
-void ParallelMesh::addTriangle(int currentIndex, int index1, int index2, int a, int b, int c, CRITICAL_SECTION& csF, CRITICAL_SECTION& csV, std::vector<std::pair<int, int>>& surplusVertices, std::vector<std::pair<int, glm::ivec3>>& surplusFaces)
+void ParallelMesh::addTriangle(int currentIndex, int index1, int index2, int a, int b, int c, pthread_mutex_t& csF, pthread_mutex_t& csV, std::vector<std::pair<int, int>>& surplusVertices, std::vector<std::pair<int, glm::ivec3>>& surplusFaces)
 {
 	bool found1, found2, foundCurrent;
 	int i;
 	if (m_faceIndices[(currentIndex + 1) * (3 * slotSize + 1) - 1] != -1) {
-		EnterCriticalSection(&csF);
+		pthread_mutex_lock(&csF);
 		surplusFaces.push_back({ currentIndex,{a,b,c} });
-		LeaveCriticalSection(&csF);
+		pthread_mutex_unlock(&csF);
 	}
 	else {
 		for (int i = 0; i < slotSize; i++) {
@@ -477,9 +487,9 @@ void ParallelMesh::addTriangle(int currentIndex, int index1, int index2, int a, 
 	i = 0;
 	if (!foundCurrent) {
 		if (m_adjacentVerticesIndices[(currentIndex + 1) * (slotSize + 1) - 1] != -1) {
-			EnterCriticalSection(&csV);
+			pthread_mutex_lock(&csV);
 			surplusVertices.push_back({ currentIndex, currentIndex });
-			LeaveCriticalSection(&csV);
+			pthread_mutex_unlock(&csV);
 		}
 		else {
 			for (; i < slotSize; i++) {
@@ -492,9 +502,9 @@ void ParallelMesh::addTriangle(int currentIndex, int index1, int index2, int a, 
 	}
 	if (!found1) {
 		if (m_adjacentVerticesIndices[(currentIndex + 1) * (slotSize + 1) - 1] != -1) {
-			EnterCriticalSection(&csV);
+			pthread_mutex_lock(&csV);
 			surplusVertices.push_back({ currentIndex,index1 });
-			LeaveCriticalSection(&csV);
+			pthread_mutex_unlock(&csV);
 		}
 		else {
 			for (; i < slotSize; i++) {
@@ -507,9 +517,9 @@ void ParallelMesh::addTriangle(int currentIndex, int index1, int index2, int a, 
 	}
 	if (!found2) {
 		if (m_adjacentVerticesIndices[(currentIndex + 1) * (slotSize + 1) -1] != -1) {
-			EnterCriticalSection(&csV);
+			pthread_mutex_lock(&csV);
 			surplusVertices.push_back({ currentIndex,index2 });
-			LeaveCriticalSection(&csV);
+			pthread_mutex_unlock(&csV);
 		}
 		else {
 			for (; i < slotSize; i++) {
@@ -522,13 +532,13 @@ void ParallelMesh::addTriangle(int currentIndex, int index1, int index2, int a, 
 	}
 }
 
-void ParallelMesh::addTriangleIndex(int triangleIndex, int currentIndex, int index1, int index2, int a, int b, int c, CRITICAL_SECTION& csF, CRITICAL_SECTION& csV, std::vector<std::pair<int, int>>& surplusVertices, std::vector<std::pair<int, int>>& surplusFaces)
+void ParallelMesh::addTriangleIndex(int triangleIndex, int currentIndex, int index1, int index2, int a, int b, int c, pthread_mutex_t& csF, pthread_mutex_t& csV, std::vector<std::pair<int, int>>& surplusVertices, std::vector<std::pair<int, int>>& surplusFaces)
 {
 	bool found1, found2, foundCurrent;
 	if (m_faceIndices[(currentIndex + 1) * (slotSize + 1) - 1] != -1) {
-		EnterCriticalSection(&csF);
+		pthread_mutex_lock(&csF);
 		surplusFaces.push_back({ currentIndex,triangleIndex });
-		LeaveCriticalSection(&csF);
+		pthread_mutex_unlock(&csF);
 	}
 	else {
 		for (int i = 0; i < slotSize; i++) {
@@ -555,9 +565,9 @@ void ParallelMesh::addTriangleIndex(int triangleIndex, int currentIndex, int ind
 	int i = 0;
 	if (!foundCurrent) {
 		if (m_adjacentVerticesIndices[(currentIndex + 1) * (slotSize + 1) - 1] != -1) {
-			EnterCriticalSection(&csV);
+			pthread_mutex_lock(&csV);
 			surplusVertices.push_back({ currentIndex, currentIndex });
-			LeaveCriticalSection(&csV);
+			pthread_mutex_unlock(&csV);
 		}
 		else {
 			for (; i < slotSize; i++) {
@@ -570,9 +580,9 @@ void ParallelMesh::addTriangleIndex(int triangleIndex, int currentIndex, int ind
 	}
 	if (!found1) {
 		if (m_adjacentVerticesIndices[(currentIndex + 1) * (slotSize + 1) - 1] != -1) {
-			EnterCriticalSection(&csV);
+			pthread_mutex_lock(&csV);
 			surplusVertices.push_back({ currentIndex,index1 });
-			LeaveCriticalSection(&csV);
+			pthread_mutex_unlock(&csV);
 		}
 		else {
 			for (; i < slotSize; i++) {
@@ -585,9 +595,9 @@ void ParallelMesh::addTriangleIndex(int triangleIndex, int currentIndex, int ind
 	}
 	if (!found2) {
 		if (m_adjacentVerticesIndices[(currentIndex + 1) * (slotSize + 1) - 1] != -1) {
-			EnterCriticalSection(&csV);
+			pthread_mutex_lock(&csV);
 			surplusVertices.push_back({ currentIndex,index2 });
-			LeaveCriticalSection(&csV);
+			pthread_mutex_unlock(&csV);
 		}
 		else {
 			for (; i < slotSize; i++) {
@@ -727,7 +737,7 @@ void ParallelMesh::reduceVertices(int finalSize, int countThreads) {
 					for (int j = 0; j < slotSize; j++) {
 						if (faceIndices[readPos] != -1) {
 #ifndef VECTOR_REDUCTION
-							__debugbreak();
+							// __debugbreak();
 #else
 							int faceIndex = facesMap[faceIndices[readPos]];
 							if (faceIndex == -1)
@@ -876,7 +886,7 @@ void ParallelMesh::reduceVertices(int finalSize, int countThreads) {
 				for (int j = 0; j < slotSize; j++) {
 					if (faceIndices[readPos] != -1) {
 #ifndef VECTOR_REDUCTION
-						__debugbreak();
+						// __debugbreak();
 #else
 						int faceIndex = facesMap[faceIndices[readPos]];
 						if (faceIndex == -1)

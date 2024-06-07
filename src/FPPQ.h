@@ -5,10 +5,13 @@
 #include <execution>
 #include <algorithm>
 
+#include <execution>
+#include <thread>
+
 #include <cassert>
 
 #include <omp.h>
-#include <Windows.Foundation.h>
+// #include <Windows.Foundation.h>
 /*
 * 
 * A General Implementation of the Filtered Parallel Priority Queue 
@@ -38,7 +41,7 @@ public:
 
 	// Locks the node with id: "nodeId"
 	inline void lock(int nodeId) {
-		EnterCriticalSection(&m_locks[correctLockId(nodeId)]);
+		pthread_mutex_lock(&m_locks[correctLockId(nodeId)]);
 		//while(!tryLock(nodeId))
 			//m_locks[correctNodeId(nodeId)].wait(true);
 		
@@ -46,14 +49,14 @@ public:
 
 	// Unlocks the node with id: "nodeId"
 	inline void unlock(int nodeId) {
-		LeaveCriticalSection(&m_locks[correctLockId(nodeId)]);
+		pthread_mutex_unlock(&m_locks[correctLockId(nodeId)]);
 		//m_locks[correctNodeId(nodeId)].clear(std::memory_order_release);
 		//m_locks[correctNodeId(nodeId)].notify_one();
 	}
 
 	// Trys to lock the node with id: "nodeId" and returns if successfull
 	inline bool tryLock(int nodeId) {
-		return TryEnterCriticalSection(&m_locks[correctLockId(nodeId)]);
+		return pthread_mutex_trylock(&m_locks[correctLockId(nodeId)]);
 		//return !m_locks[correctNodeId(nodeId)].test_and_set(std::memory_order_acquire);
 	}
 
@@ -73,8 +76,8 @@ public:
 			int childNode2 = rightChildNodeIdAboveFilter(i);
 			int parentNode1 = parentNodeIdAboveFilter(childNode1);
 			int parentNode2 = parentNodeIdAboveFilter(childNode2);
-			if(parentNode1 != parentNode2 || parentNode1 != i)
-				__debugbreak();
+			if(parentNode1 != parentNode2 || parentNode1 != i){}
+				// __debugbreak();
 		}
 		for(int i = filteredElements - filterLevelSize; i < filterLevelEnd - filterLevelSize; i++) {
 			volatile int childNode1, childNode2, filterLevelOffset;
@@ -99,8 +102,8 @@ public:
 					leftParentNodeId = leftParentNodeId2InFilter(nodeId, filterLevelOffset);
 					rightParentNodeId = parentNodeId1InFilter(nodeId);
 				}
-				if(!(leftParentNodeId == i || rightParentNodeId == i))
-					__debugbreak();
+				if(!(leftParentNodeId == i || rightParentNodeId == i)){}
+					// __debugbreak();
 			}
 			{
 				volatile int leftParentNodeId, rightParentNodeId;
@@ -114,8 +117,8 @@ public:
 					leftParentNodeId = leftParentNodeId2InFilter(nodeId, filterLevelOffset);
 					rightParentNodeId = parentNodeId1InFilter(nodeId);
 				}
-				if(!(leftParentNodeId == i || rightParentNodeId == i))
-					__debugbreak();
+				if(!(leftParentNodeId == i || rightParentNodeId == i)){}
+					// __debugbreak();
 			}
 
 
@@ -127,8 +130,8 @@ public:
 			int childNode2 = rightChildNodeIdBelowFilter(i);
 			int parentNode1 = parentNodeIdBelowFilter(childNode1);
 			int parentNode2 = parentNodeIdBelowFilter(childNode2);
-			if(parentNode1 != parentNode2 || parentNode1 != i)
-				__debugbreak();
+			if(parentNode1 != parentNode2 || parentNode1 != i){}
+				// __debugbreak();
 		}
 	}
 
@@ -158,7 +161,7 @@ public:
 					volatile float errtc = m_tmpError[vidc];
 					volatile float errtlp = m_tmpError[vidlp];
 					volatile float errtrp = m_tmpError[vidrp];
-					__debugbreak();
+					// __debugbreak();
 				}
 				continue;
 			}
@@ -168,7 +171,7 @@ public:
 				volatile int vidp = m_nodes[correctNodeId(parentNodeId)];
 				volatile float errtc = m_tmpError[vidc];
 				volatile float errtp = m_tmpError[vidp];
-				__debugbreak();
+				// __debugbreak();
 			}
 		}
 	}
@@ -200,7 +203,7 @@ protected:
 
 	int m_size;
 
-	std::vector<CRITICAL_SECTION> m_locks; // Per Node Locks
+	std::vector<pthread_mutex_t> m_locks; // Per Node Locks
 	std::vector<std::atomic<int>> m_notRepairedUp; // Blocks the bubbleUp from child if the current node is not at the correct position
 	std::vector<std::atomic<T>> m_tmpError; // An error cache used to maintain the structure
 	std::vector<int> m_nodes;
@@ -318,15 +321,15 @@ inline FPPQ<T>::FPPQ(int maxCapacity) {
 		m_size = maxCapacity;
 	else
 		m_size = maxCapacity + 1; // We need the size to be odd
-	m_locks = std::vector<CRITICAL_SECTION>(m_size + m_countMemCollisionNodes*15);
+	m_locks = std::vector<pthread_mutex_t>(m_size + m_countMemCollisionNodes*15);
 	m_notRepairedUp = std::vector<std::atomic<int>>(m_size);
 	m_nodes = std::vector<int>(m_size + m_countMemCollisionNodes * 15,-1);
 	m_tmpError = std::vector<std::atomic<T>>(m_size);
 	m_nodeLookup = std::vector<std::atomic<int>>(m_size);
 	int spincount1 = 0x01001000;
 	for(int i = 0; i < m_size + m_countMemCollisionNodes * 15; i++) {
-		if(!InitializeCriticalSectionAndSpinCount(&m_locks[i],spincount1))
-			__debugbreak();
+		// if(!InitializeCriticalSectionAndSpinCount(&m_locks[i],spincount1)){}
+			// __debugbreak();
 	}
 	for(int i = 0; i < m_size; i++) {
 		m_nodeLookup[i] = -1;
@@ -407,7 +410,7 @@ int FPPQ<T>::pop() {
 			lookupId = m_nodes[correctNodeId(popIndex)];
 			if(lookupId == -1) {
 				unlock(popIndex);
-				//__debugbreak();
+				//// __debugbreak();
 				if(m_last < 0)
 					return -1;
 				popIndex = 0;
@@ -419,7 +422,7 @@ int FPPQ<T>::pop() {
 			// This should not happen
 			else if(m_nodeLookup[lookupId] == -1) {
 				unlock(popIndex);
-				__debugbreak();
+				// __debugbreak();
 				popIncreaseCount++;
 				lookupId = -1;
 			}
@@ -475,8 +478,8 @@ int FPPQ<T>::pop() {
 						unlock(lastIndex);
 					} else {
 						// This should be impossible we are popping an element that is behind our last Index which can happen (because of multi-Threading) but should be prevented with the atomic CAS
-						__debugbreak();
-						throw std::exception("Invalid pop: popIndex after lastIndex");
+						// __debugbreak();
+						// throw std::exception("Invalid pop: popIndex after lastIndex");
 					}
 				}
 			}
@@ -625,7 +628,7 @@ void FPPQ<T>::update(int lookupId, T errorValue, bool fromInsertion) {
 			nodeId = m_nodeLookup[lookupId];
 			if(nodeId < 0) { // We are finished because node got popped in theory this should not happen (at least in mesh decimation. could happen in other use cases)
 				finished = true;
-				//__debugbreak();
+				//// __debugbreak();
 			} else {
 				lock(nodeId);
 				if(m_nodes[correctNodeId(nodeId)] != lookupId) { // Element got swapped to different node in the meantime
@@ -648,7 +651,7 @@ template<typename T>
 void FPPQ<T>::insert(int lookupId, T errorValue) {
 
 	if(m_nodeLookup[lookupId] > 0) // Already inside queue
-		__debugbreak();
+		// __debugbreak();
 
 	m_notRepairedUp[lookupId] += 1;
 	m_tmpError[lookupId] = errorValue;
@@ -672,8 +675,8 @@ void FPPQ<T>::insert(int lookupId, T errorValue) {
 template<typename T>
 int FPPQ<T>::repairDown(int nodeId) // Assumes we have lock on nodeId
 {
-	if(nodeId < 0)
-		__debugbreak();
+	if(nodeId < 0){}
+		// __debugbreak();
 	int nextNodeId = -1;
 	int leftChildNodeId, rightChildNodeId;
 
@@ -764,7 +767,7 @@ bool FPPQ<T>::repairUp(int nodeId, int lookupId, int parentNodeId, int parentloo
 {
 	float valueParent = m_tmpError[parentlookupId];
 	if(nodeId < 0)
-		__debugbreak();
+		// __debugbreak();
 	if(m_tmpError[lookupId] < valueParent) { // We are now smaller than the parent
 		// Node
 		m_nodeLookup[lookupId].store(parentNodeId); // swap

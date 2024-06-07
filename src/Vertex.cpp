@@ -91,7 +91,7 @@ bool Vertex::removeTriangle(int triangleIndex) {
 	if (removed) {
 		volatile int pos = (slotSize + 1) * m_vertexIndex + 1;
 		if (faceIndices[pos] == -1) { // Vertex with no Triangles
-			//__debugbreak();
+			//// __debugbreak();
 			//m_adjacentVerticesIndices.clear();
 			//updateErrorMetric();
 			//return true;
@@ -128,7 +128,7 @@ void Vertex::collapse(int ownIndex)
 {
 #ifndef NO_DEBUG_CHECKS
 	if (!this->deactivate()) {
-		__debugbreak();
+		// __debugbreak();
 	}
 #else
 	this->deactivate();
@@ -144,7 +144,7 @@ void Vertex::collapse(int ownIndex)
 #ifndef NO_DEBUG_CHECKS
 	if (vertexIndexToCollapseTo < 0) {
 		// We have no faces
-		__debugbreak();
+		// __debugbreak();
 	}	
 	else 
 #endif // !NO_DEBUG_CHECKS
@@ -267,7 +267,7 @@ bool Vertex::isValidCollapse()
 	//ParallelMesh::getInstance().unlockVertex(collapseVertexIndex);
 #endif
 	if (countCommonNeigbours != 4) { // itselfs + 2 neigbours are allowed
-		//__debugbreak();
+		//// __debugbreak();
 		return false;
 	}
 
@@ -356,7 +356,7 @@ void Vertex::incommingCollapse(int indexCollapse, int indexToCollapseTo, bool is
 {
 #ifndef NO_DEBUG_CHECKS
 	if (!this->isActive())
-		__debugbreak();
+		// __debugbreak();
 #endif // !NO_DEBUG_CHECKS
 	auto& adjacentVertices = ParallelMesh::getInstance().m_adjacentVerticesIndices;
 	int replacementPos = -1;
@@ -398,7 +398,7 @@ void Vertex::incommingCollapse(int indexCollapse, int indexToCollapseTo, bool is
 			}
 #ifndef NO_DEBUG_CHECKS
 			if (replacementPos == -1) {
-				__debugbreak();		
+				// __debugbreak();		
 			}
 			else
 #endif // !NO_DEBUG_CHECKS
@@ -469,7 +469,7 @@ void Vertex::incommingCollapse(int indexCollapse, int indexToCollapseTo, bool is
 						} else {
 #ifndef NO_DEBUG_CHECKS
 							if(adjacentVertices[currentPos] != -1 && !stolenV)
-								__debugbreak();
+								// __debugbreak();
 #endif
 						}
 						adjacentVertices[currentPos] = vertexToFind;
@@ -601,7 +601,7 @@ void Vertex::collapseUpdateTriangles(int indexCollapse, int indexToCollapseTo) {
 					stolenF = true;
 #ifndef NO_DEBUG_CHECKS
 					if(startPosStealF == -1)
-						__debugbreak();
+						// __debugbreak();
 #endif // !NO_DEBUG_CHECKS
 					currentPosWrite = startPosStealF + 1;
 					startPosStealF = faceIndices[startPosStealF];
@@ -618,7 +618,7 @@ void Vertex::collapseUpdateTriangles(int indexCollapse, int indexToCollapseTo) {
 			}
 #ifndef NO_DEBUG_CHECKS
 			else {
-				__debugbreak();
+				// __debugbreak();
 			}
 #endif // !NO_DEBUG_CHECKS
 		}

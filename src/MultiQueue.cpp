@@ -36,16 +36,16 @@ MultiQueue::MultiQueue(int countVertices, int countQueues) : m_mesh(ParallelMesh
 	}
 	int spincount = 0x01001000;
 #ifndef SINGLE_THREADED_LOADING
-	m_vertexLocks = std::vector<CRITICAL_SECTION>(m_size);
+	m_vertexLocks = std::vector<pthread_mutex_t>(m_size);
 	for(int i = 0; i < m_size; i++) {
 		if(!InitializeCriticalSectionAndSpinCount(&m_vertexLocks[i], spincount))
-			__debugbreak();
+			// __debugbreak();
 	}
 #endif
-	m_queueLocks = std::vector<CRITICAL_SECTION>(m_countQueues);
+	m_queueLocks = std::vector<pthread_mutex_t>(m_countQueues);
 	for(int i = 0; i < m_countQueues; i++) {
-		if(!InitializeCriticalSectionAndSpinCount(&m_queueLocks[i], spincount))
-			__debugbreak();
+		// if(!InitializeCriticalSectionAndSpinCount(&m_queueLocks[i], spincount))
+			// __debugbreak();
 	}
 
 }
@@ -81,12 +81,12 @@ int MultiQueue::pop() {
 	while(vertexId == -1) {
 		// Lock two random queues
 		int queueId1 = dist(rng);
-		while(!TryEnterCriticalSection(&m_queueLocks[queueId1]))  // acquire lock
+		while(!pthread_mutex_trylock(&m_queueLocks[queueId1]))  // acquire lock
 		{
 			queueId1 = dist(rng);
 		}
 		int queueId2 = dist(rng);
-		while(queueId2 == queueId1 || !TryEnterCriticalSection(&m_queueLocks[queueId2]))  // acquire lock
+		while(queueId2 == queueId1 || !pthread_mutex_trylock(&m_queueLocks[queueId2]))  // acquire lock
 		{
 			queueId2 = dist(rng);
 		}
@@ -102,11 +102,11 @@ int MultiQueue::pop() {
 		int queueId;
 		if(err1 < err2) {
 			vertexId = vertexId1;
-			LeaveCriticalSection(&m_queueLocks[queueId2]);
+			pthread_mutex_unlock(&m_queueLocks[queueId2]);
 			queueId = queueId1;
 		} else {
 			vertexId = vertexId2;
-			LeaveCriticalSection(&m_queueLocks[queueId1]);
+			pthread_mutex_unlock(&m_queueLocks[queueId1]);
 			queueId = queueId2;
 		}
 		popIndex = queueId * m_queueSize;
@@ -171,7 +171,7 @@ int MultiQueue::pop() {
 
 #else
 						if(m_tmpError[vertexId] >= 1000000000000000000000000.0)
-							__debugbreak();
+							// __debugbreak();
 						m_tmpError[vertexId] += 10000000000000000000000.0;
 
 #endif // NEXT_BEST_ERROR
@@ -233,7 +233,7 @@ int MultiQueue::pop() {
 			decreaseAdjacentCollapses(vertexId);
 			vertexId = -1;
 		}
-		LeaveCriticalSection(&m_queueLocks[queueId]);
+		pthread_mutex_unlock(&m_queueLocks[queueId]);
 	}
 
 	return vertexId;
@@ -244,7 +244,7 @@ void MultiQueue::update(volatile int vertexId) {
 	int vertexNodeId = m_nodeLookup[vertexId];
 	int queueId = getQueueId(vertexNodeId);
 
-	EnterCriticalSection(&m_queueLocks[queueId]);
+	pthread_mutex_lock(&m_queueLocks[queueId]);
 	vertexNodeId = m_nodeLookup[vertexId];
 	float trueError = m_mesh.getVertexError(vertexId);
 	//m_mesh->getVertex(vertexId).unlock();
@@ -256,14 +256,14 @@ void MultiQueue::update(volatile int vertexId) {
 
 	int nodeId = getIndex(vertexNodeId, queueId);
 	if(nodeId < 0)
-		__debugbreak();
+		// __debugbreak();
 	if(directionUp) {
 		bool finished = false;
 		while(!finished) {
 			finished = repairUp(nodeId, queueId);
 			nodeId = PARENT_NODE_ID;
 			/*if ((m_nodeLookup[vertexId] != nodeId) && !finished)
-				__debugbreak();*/
+				// __debugbreak();*/
 		}
 		//m_locks[nodeId].clear(std::memory_order_release);
 	} else { // downwards
@@ -272,7 +272,7 @@ void MultiQueue::update(volatile int vertexId) {
 			nextNodeId = repairDown(nextNodeId, queueId);
 		}
 	}
-	LeaveCriticalSection(&m_queueLocks[queueId]);
+	pthread_mutex_unlock(&m_queueLocks[queueId]);
 	//debugCheckHeap();
 }
 

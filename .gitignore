@@ -25,3 +25,4 @@ Core
 /src/output
 /src/x64
 /src/.vs
+/src/*.o
