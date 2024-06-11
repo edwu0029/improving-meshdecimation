@@ -26,3 +26,5 @@ Core
 /src/x64
 /src/.vs
 /src/*.o
+/src/mq_main
+.vscode

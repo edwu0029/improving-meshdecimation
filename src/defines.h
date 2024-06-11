@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
 
-const std::string MESH_PATH = "D:/models/lucy.obj";
-const std::string OUTPUT_DIRECTORY = "D:/PPQOutput";
+const std::string MESH_PATH = "/ceph/inputs/mesh";
+const std::string OUTPUT_DIRECTORY = "~/Mesh-Decimation/results";
 const unsigned int DESIRED_NUMBER_OF_VERTICES = 14000;
 
 constexpr int slotSize = 8;
