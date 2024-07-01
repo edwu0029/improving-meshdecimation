@@ -86,19 +86,8 @@ bool ParallelMesh::loadFromObj(std::filesystem::path path) {
 	m_priorityStructure = std::make_unique<PRIORITY_STRUCTURE>(static_cast<int>(vertices.size()) / 3);
 #endif // MULTI_QUEUE
 
-
-	//INTERESTING
-	//should be able to ignore since its irrelevant for multiprocessor systems anyways
-	pthread_mutex_t csF;
-	pthread_mutex_init(&csF, NULL);
-	// if (!InitializeCriticalSectionAndSpinCount(&csF,
-	// 	0x01001000))
-		// return false;
-	pthread_mutex_t csV;
-	pthread_mutex_init(&csV, NULL);
-	// if (!InitializeCriticalSectionAndSpinCount(&csV,
-	// 	0x01001000))
-	// 	return false;
+	std::mutex csF;
+	std::mutex csV;
 
 	std::vector<std::pair<int, int>> surplusVertices;
 	int n = (static_cast<int>(vertices.size()) / 3) * (slotSize + 1);
@@ -230,7 +219,7 @@ bool ParallelMesh::loadFromObj(std::filesystem::path path) {
 			}
 		}
 	}
-
+	std::cout << "Finished Load" << std::endl;
 	return true;
 }
 
@@ -322,7 +311,7 @@ void ParallelMesh::computeQuadricErrorMatrices(int countThreads) {
 #ifndef SINGLE_THREADED
 	m_priorityStructure->setErrors(errorValues, countThreads);
 #else
-	m_priorityStructure->setErrors(errorValues);
+	m_priorityStructure->setErrors(errorValues, countThreads); // If single threaded, countThreads = 1
 #endif // !SINGLE_THREADED
 
 }
@@ -451,14 +440,14 @@ void ParallelMesh::debugCheckData(int activeException)
 	}
 }
 
-void ParallelMesh::addTriangle(int currentIndex, int index1, int index2, int a, int b, int c, pthread_mutex_t& csF, pthread_mutex_t& csV, std::vector<std::pair<int, int>>& surplusVertices, std::vector<std::pair<int, glm::ivec3>>& surplusFaces)
+void ParallelMesh::addTriangle(int currentIndex, int index1, int index2, int a, int b, int c, std::mutex& csF, std::mutex& csV, std::vector<std::pair<int, int>>& surplusVertices, std::vector<std::pair<int, glm::ivec3>>& surplusFaces)
 {
 	bool found1, found2, foundCurrent;
 	int i;
 	if (m_faceIndices[(currentIndex + 1) * (3 * slotSize + 1) - 1] != -1) {
-		pthread_mutex_lock(&csF);
+		csF.lock();
 		surplusFaces.push_back({ currentIndex,{a,b,c} });
-		pthread_mutex_unlock(&csF);
+		csF.unlock();
 	}
 	else {
 		for (int i = 0; i < slotSize; i++) {
@@ -487,9 +476,9 @@ void ParallelMesh::addTriangle(int currentIndex, int index1, int index2, int a, 
 	i = 0;
 	if (!foundCurrent) {
 		if (m_adjacentVerticesIndices[(currentIndex + 1) * (slotSize + 1) - 1] != -1) {
-			pthread_mutex_lock(&csV);
+			csV.lock();
 			surplusVertices.push_back({ currentIndex, currentIndex });
-			pthread_mutex_unlock(&csV);
+			csV.unlock();
 		}
 		else {
 			for (; i < slotSize; i++) {
@@ -502,9 +491,9 @@ void ParallelMesh::addTriangle(int currentIndex, int index1, int index2, int a, 
 	}
 	if (!found1) {
 		if (m_adjacentVerticesIndices[(currentIndex + 1) * (slotSize + 1) - 1] != -1) {
-			pthread_mutex_lock(&csV);
+			csV.lock();
 			surplusVertices.push_back({ currentIndex,index1 });
-			pthread_mutex_unlock(&csV);
+			csV.unlock();
 		}
 		else {
 			for (; i < slotSize; i++) {
@@ -517,9 +506,9 @@ void ParallelMesh::addTriangle(int currentIndex, int index1, int index2, int a, 
 	}
 	if (!found2) {
 		if (m_adjacentVerticesIndices[(currentIndex + 1) * (slotSize + 1) -1] != -1) {
-			pthread_mutex_lock(&csV);
+			csV.lock();
 			surplusVertices.push_back({ currentIndex,index2 });
-			pthread_mutex_unlock(&csV);
+			csV.unlock();
 		}
 		else {
 			for (; i < slotSize; i++) {
@@ -532,13 +521,13 @@ void ParallelMesh::addTriangle(int currentIndex, int index1, int index2, int a, 
 	}
 }
 
-void ParallelMesh::addTriangleIndex(int triangleIndex, int currentIndex, int index1, int index2, int a, int b, int c, pthread_mutex_t& csF, pthread_mutex_t& csV, std::vector<std::pair<int, int>>& surplusVertices, std::vector<std::pair<int, int>>& surplusFaces)
+void ParallelMesh::addTriangleIndex(int triangleIndex, int currentIndex, int index1, int index2, int a, int b, int c, std::mutex& csF, std::mutex& csV, std::vector<std::pair<int, int>>& surplusVertices, std::vector<std::pair<int, int>>& surplusFaces)
 {
 	bool found1, found2, foundCurrent;
 	if (m_faceIndices[(currentIndex + 1) * (slotSize + 1) - 1] != -1) {
-		pthread_mutex_lock(&csF);
+		csF.lock();
 		surplusFaces.push_back({ currentIndex,triangleIndex });
-		pthread_mutex_unlock(&csF);
+		csF.unlock();
 	}
 	else {
 		for (int i = 0; i < slotSize; i++) {
@@ -565,9 +554,9 @@ void ParallelMesh::addTriangleIndex(int triangleIndex, int currentIndex, int ind
 	int i = 0;
 	if (!foundCurrent) {
 		if (m_adjacentVerticesIndices[(currentIndex + 1) * (slotSize + 1) - 1] != -1) {
-			pthread_mutex_lock(&csV);
+			csV.lock();
 			surplusVertices.push_back({ currentIndex, currentIndex });
-			pthread_mutex_unlock(&csV);
+			csV.unlock();
 		}
 		else {
 			for (; i < slotSize; i++) {
@@ -580,9 +569,9 @@ void ParallelMesh::addTriangleIndex(int triangleIndex, int currentIndex, int ind
 	}
 	if (!found1) {
 		if (m_adjacentVerticesIndices[(currentIndex + 1) * (slotSize + 1) - 1] != -1) {
-			pthread_mutex_lock(&csV);
+			csV.lock();
 			surplusVertices.push_back({ currentIndex,index1 });
-			pthread_mutex_unlock(&csV);
+			csV.unlock();
 		}
 		else {
 			for (; i < slotSize; i++) {
@@ -595,9 +584,9 @@ void ParallelMesh::addTriangleIndex(int triangleIndex, int currentIndex, int ind
 	}
 	if (!found2) {
 		if (m_adjacentVerticesIndices[(currentIndex + 1) * (slotSize + 1) - 1] != -1) {
-			pthread_mutex_lock(&csV);
+			csV.lock();
 			surplusVertices.push_back({ currentIndex,index2 });
-			pthread_mutex_unlock(&csV);
+			csV.unlock();
 		}
 		else {
 			for (; i < slotSize; i++) {

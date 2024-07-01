@@ -1,16 +1,16 @@
 #pragma once
 #include <string>
 
-const std::string MESH_PATH = "/ceph/inputs/mesh";
-const std::string OUTPUT_DIRECTORY = "~/Mesh-Decimation/results";
-const unsigned int DESIRED_NUMBER_OF_VERTICES = 14000;
+const std::string MESH_PATH = "/ceph/inputs/mesh/bunny.obj";
+const std::string OUTPUT_DIRECTORY = "/ceph/users/wuedwar5/home/Mesh-Decimation/results";
+const unsigned int DESIRED_NUMBER_OF_VERTICES = 1000;
 
 constexpr int slotSize = 8;
-const int NUM_THREADS = 32;
+const int NUM_THREADS = 1;
 
-constexpr int countIterations = 100;
+constexpr int countIterations = 1;
 
-//#define MULTI_QUEUE
+#define MULTI_QUEUE
 //#define SINGLE_THREADED
 #define NEXT_BEST_ERROR // If the collapse is invalid (topology check) the next best vertex to collapse to is searched instead and the PQ updated instead of disallowing HECs from this vertex 
 #define TRIANGLE_INDICES // Uses Triangle indices instead of saving every triangle in every vertex (faster)
@@ -20,7 +20,7 @@ constexpr int countIterations = 100;
 #define NORMAL_THRESHOLD 0.5 // Dot Product of new Face normal and old Face normal has to be over this for every face 
 #define BENCHMARK 1
 #define BENCHMARK_DEBUG 1 // have NUM_THREADS as first benchmark and decimate to DESIRED_NUMBER_OF_VERTICES
-//#define NO_HAUSDORFF
+#define NO_HAUSDORFF
 //#define EXPORT // Export the obj after decimation
 #define NO_DEBUG_CHECKS // Disables some debug checks
 #define VECTOR_REDUCTION // Use a vector as a map for the final reduction step (is faster but uses more memory)

@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <mutex>
 // #include <Windows.Foundation.h>
 class ParallelMesh;
 
@@ -15,11 +16,11 @@ public:
 	void debugCheckHeap(); // Checks if the Heap is still valid
 #ifndef SINGLE_THREADED_LOADING
 	void lock(int vertexId) {
-		pthread_mutex_lock(&m_vertexLocks[vertexId]);
+		m_vertexLocks[vertexId].lock();
 	}
 
 	void unlock(int vertexId) {
-		pthread_mutex_unlock(&m_vertexLocks[vertexId]);
+		m_vertexLocks[vertexId].unlock();
 	}
 #endif
 	std::vector<int>& getNodes() {
@@ -30,7 +31,7 @@ private:
 	int repairDown(int nodeId);
 	bool repairUp(int nodeId);
 #ifndef SINGLE_THREADED_LOADING
-	std::vector<pthread_mutex_t> m_vertexLocks; // for initialisation
+	std::vector<std::mutex> m_vertexLocks; // for initialisation
 #endif
 	int m_size;
 	std::vector<float> m_tmpError; // A temporary error for every vertex used to maintain the structure

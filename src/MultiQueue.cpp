@@ -36,13 +36,13 @@ MultiQueue::MultiQueue(int countVertices, int countQueues) : m_mesh(ParallelMesh
 	}
 	int spincount = 0x01001000;
 #ifndef SINGLE_THREADED_LOADING
-	m_vertexLocks = std::vector<pthread_mutex_t>(m_size);
+	m_vertexLocks = std::vector<std::mutex>(m_size);
 	for(int i = 0; i < m_size; i++) {
-		if(!InitializeCriticalSectionAndSpinCount(&m_vertexLocks[i], spincount))
+		// if(!InitializeCriticalSectionAndSpinCount(&m_vertexLocks[i], spincount))
 			// __debugbreak();
 	}
 #endif
-	m_queueLocks = std::vector<pthread_mutex_t>(m_countQueues);
+	m_queueLocks = std::vector<std::mutex>(m_countQueues);
 	for(int i = 0; i < m_countQueues; i++) {
 		// if(!InitializeCriticalSectionAndSpinCount(&m_queueLocks[i], spincount))
 			// __debugbreak();
@@ -81,12 +81,12 @@ int MultiQueue::pop() {
 	while(vertexId == -1) {
 		// Lock two random queues
 		int queueId1 = dist(rng);
-		while(!pthread_mutex_trylock(&m_queueLocks[queueId1]))  // acquire lock
+		while(!m_queueLocks[queueId1].try_lock())  // acquire lock
 		{
 			queueId1 = dist(rng);
 		}
 		int queueId2 = dist(rng);
-		while(queueId2 == queueId1 || !pthread_mutex_trylock(&m_queueLocks[queueId2]))  // acquire lock
+		while(queueId2 == queueId1 || !m_queueLocks[queueId2].try_lock())  // acquire lock
 		{
 			queueId2 = dist(rng);
 		}
@@ -102,11 +102,11 @@ int MultiQueue::pop() {
 		int queueId;
 		if(err1 < err2) {
 			vertexId = vertexId1;
-			pthread_mutex_unlock(&m_queueLocks[queueId2]);
+			m_queueLocks[queueId2].unlock();
 			queueId = queueId1;
 		} else {
 			vertexId = vertexId2;
-			pthread_mutex_unlock(&m_queueLocks[queueId1]);
+			m_queueLocks[queueId1].unlock();
 			queueId = queueId2;
 		}
 		popIndex = queueId * m_queueSize;
@@ -233,7 +233,7 @@ int MultiQueue::pop() {
 			decreaseAdjacentCollapses(vertexId);
 			vertexId = -1;
 		}
-		pthread_mutex_unlock(&m_queueLocks[queueId]);
+		m_queueLocks[queueId].unlock();
 	}
 
 	return vertexId;
@@ -244,7 +244,7 @@ void MultiQueue::update(volatile int vertexId) {
 	int vertexNodeId = m_nodeLookup[vertexId];
 	int queueId = getQueueId(vertexNodeId);
 
-	pthread_mutex_lock(&m_queueLocks[queueId]);
+	m_queueLocks[queueId].lock();
 	vertexNodeId = m_nodeLookup[vertexId];
 	float trueError = m_mesh.getVertexError(vertexId);
 	//m_mesh->getVertex(vertexId).unlock();
@@ -272,7 +272,7 @@ void MultiQueue::update(volatile int vertexId) {
 			nextNodeId = repairDown(nextNodeId, queueId);
 		}
 	}
-	pthread_mutex_unlock(&m_queueLocks[queueId]);
+	m_queueLocks[queueId].unlock();
 	//debugCheckHeap();
 }
 

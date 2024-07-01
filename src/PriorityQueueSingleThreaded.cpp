@@ -20,7 +20,7 @@ PriorityQueueSingleThreaded::PriorityQueueSingleThreaded(int countVertices) : m_
 	m_last = m_size - 1;
 	m_repairCount = 0;
 #ifndef SINGLE_THREADED_LOADING
-	m_vertexLocks = std::vector<pthread_mutex_t>(m_size);
+	m_vertexLocks = std::vector<std::mutex>(m_size);
 	int spincount = 0x01001000;
 	for (int i = 0; i < m_size; i++) {
 		if (!InitializeCriticalSectionAndSpinCount(&m_vertexLocks[i], spincount))

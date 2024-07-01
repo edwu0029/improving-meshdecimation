@@ -22,11 +22,11 @@ public:
 
 #ifndef SINGLE_THREADED_LOADING
 	void lock(int vertexId) {
-		pthread_mutex_lock(&m_vertexLocks[vertexId]);
+		&m_vertexLocks[vertexId].lock();
 	}
 
 	void unlock(int vertexId) {
-		pthread_mutex_unlock(&m_vertexLocks[vertexId]);
+		m_vertexLocks[vertexId].unlock();
 	}
 #endif // !SINGLE_THREADED_LOADING
 
@@ -69,9 +69,9 @@ private:
 		return index + (queueId * m_queueSize);
 	}
 #ifndef SINGLE_THREADED_LOADING
-	std::vector<pthread_mutex_t> m_vertexLocks; // for initialisation
+	std::vector<std::mutex> m_vertexLocks; // for initialisation
 #endif
-	std::vector<pthread_mutex_t> m_queueLocks; // Lock per Queue
+	std::vector<std::mutex> m_queueLocks; // Lock per Queue
 
 	int m_countQueues;
 	int m_queueSize; // Amount of Vertices in one queue

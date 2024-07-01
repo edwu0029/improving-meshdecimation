@@ -43,10 +43,12 @@ void meshDecimationExample() {
     }
 
 
-    int countThreads = 4;
+    int countThreads = 1;
     float decimation = .01f; // Decimation to 1% of original vertices
     pMesh.computeQuadricErrorMatrices(countThreads); // Initialise the error quadrics with 4 threads (the parallel std::sorting function inside can actually use more than that)
     int finalVertexCount = pMesh.reduceVerticesTo(decimation, countThreads); // Reduce the mesh with 4 threads to 1%
     pMesh.reduceVertices(finalVertexCount, countThreads); // Perform the deletion of the Collapsed vertices and repair the mesh structure (vertex ids etc.)
     pMesh.deletePriorityStructure(); // Delete the Priority Queue
+
+    std::cout << "Final Vertex Count: " << finalVertexCount << std::endl;
 }

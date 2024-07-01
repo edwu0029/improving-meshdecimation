@@ -8,6 +8,7 @@
 #include <fstream>
 #include <filesystem>
 #include <omp.h>
+#include <mutex>
 
 #include "defines.h"
 #include "MeshMetrics.h"
@@ -52,14 +53,13 @@ int main()
 
 #ifndef BENCHMARK
     auto t0 = Clock::now();
-
+    std::cout << "Starting Load" << std::endl;
     auto& pMesh = ParallelMesh::getInstance();
     if(!pMesh.loadFromObj(std::filesystem::path(MESH_PATH))) {
         std::cout << "Could not load mesh: "
             << MESH_PATH << std::endl;
         return -1;
     }
-        
    
 #ifndef NO_HAUSDORFF
     std::vector<glm::vec3> originVertices;
@@ -83,6 +83,9 @@ int main()
     int finalVertexCount = pMesh.reduceVerticesTo(decimation, threads);
     pMesh.reduceVertices(finalVertexCount, threads);
     pMesh.deletePriorityStructure();
+
+    std::cout << "Final Vertex Count: " << finalVertexCount << std::endl;
+
     auto t2 = Clock::now();
     std::cout << "Mesh decimation: "
         << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()
@@ -199,7 +202,6 @@ int main()
         << " Desired Vertex Count: " << DESIRED_NUMBER_OF_VERTICES
 #endif
         << std::endl;
-
     auto t0 = Clock::now();
     auto& pMesh = ParallelMesh::getInstance();
     if(!pMesh.loadFromObj(std::filesystem::path(MESH_PATH))) {
@@ -207,6 +209,10 @@ int main()
             << MESH_PATH << std::endl;
         return -1;
     }
+
+    std::cout << "Num of Verticies:" << pMesh.getVertices().size() << std::endl;
+    std::cout << "Num of Faces:" << pMesh.getFaces().size() << std::endl;
+    
     auto t1 = Clock::now();
     std::vector<glm::vec3> originVertices;
     std::vector<glm::ivec3> originFaces;
@@ -281,6 +287,7 @@ int main()
         } else {
             std::cout << "No reference for mesh similarity found: "  << percent << std::endl;
         }
+        std::cout << "Number of threads: " << threads.size() << std::endl;
         for (int j = 0; j < threads.size(); j++) {
             for (int i = 0; i < countIterations; i++) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -296,6 +303,8 @@ int main()
                 
                 int finalVertexCount = pMesh.reduceVerticesTo(decimation, threads[j]);
 #endif
+                std::cout << finalVertexCount << std::endl;
+                
                 //barrierCounter++;
                 auto tx2 = Clock::now();
                 pMesh.reduceVertices(finalVertexCount, threads[j]);
@@ -550,6 +559,7 @@ int main()
 #endif
             resultFile.close();
         }
+
     }
     std::pair<std::vector<glm::vec3>, std::vector<glm::vec3>> data = pMesh.getData();
     std::vector<glm::vec3> vertices = data.first;

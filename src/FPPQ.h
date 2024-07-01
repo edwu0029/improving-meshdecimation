@@ -41,7 +41,7 @@ public:
 
 	// Locks the node with id: "nodeId"
 	inline void lock(int nodeId) {
-		pthread_mutex_lock(&m_locks[correctLockId(nodeId)]);
+		m_locks[correctLockId(nodeId)].lock();
 		//while(!tryLock(nodeId))
 			//m_locks[correctNodeId(nodeId)].wait(true);
 		
@@ -49,14 +49,14 @@ public:
 
 	// Unlocks the node with id: "nodeId"
 	inline void unlock(int nodeId) {
-		pthread_mutex_unlock(&m_locks[correctLockId(nodeId)]);
+		m_locks[correctLockId(nodeId)].unlock();
 		//m_locks[correctNodeId(nodeId)].clear(std::memory_order_release);
 		//m_locks[correctNodeId(nodeId)].notify_one();
 	}
 
 	// Trys to lock the node with id: "nodeId" and returns if successfull
 	inline bool tryLock(int nodeId) {
-		return pthread_mutex_trylock(&m_locks[correctLockId(nodeId)]);
+		return m_locks[correctLockId(nodeId)].try_lock();
 		//return !m_locks[correctNodeId(nodeId)].test_and_set(std::memory_order_acquire);
 	}
 
@@ -203,7 +203,7 @@ protected:
 
 	int m_size;
 
-	std::vector<pthread_mutex_t> m_locks; // Per Node Locks
+	std::vector<std::mutex> m_locks; // Per Node Locks
 	std::vector<std::atomic<int>> m_notRepairedUp; // Blocks the bubbleUp from child if the current node is not at the correct position
 	std::vector<std::atomic<T>> m_tmpError; // An error cache used to maintain the structure
 	std::vector<int> m_nodes;
@@ -321,7 +321,7 @@ inline FPPQ<T>::FPPQ(int maxCapacity) {
 		m_size = maxCapacity;
 	else
 		m_size = maxCapacity + 1; // We need the size to be odd
-	m_locks = std::vector<pthread_mutex_t>(m_size + m_countMemCollisionNodes*15);
+	m_locks = std::vector<std::mutex>(m_size + m_countMemCollisionNodes*15);
 	m_notRepairedUp = std::vector<std::atomic<int>>(m_size);
 	m_nodes = std::vector<int>(m_size + m_countMemCollisionNodes * 15,-1);
 	m_tmpError = std::vector<std::atomic<T>>(m_size);
