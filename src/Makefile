@@ -8,7 +8,7 @@ LINKING_FLAGS = -fopenmp -ltbb
 OBJECTS = FPPQMesh.o MeshSimplification.o MultiQueue.o ParallelMesh.o PriorityQueueSingleThreaded.o QuadricErrorMetric.o Vertex.o
 
 %.o: %.cpp
-	g++ -c ${CXXFLAGS} ${OPEN_MP_FLAGS} $< -O3 $@
+	g++ -c ${CXXFLAGS} ${OPEN_MP_FLAGS} $< -o $@
 
 mq_main: ${OBJECTS}
 	g++ ${OBJECTS} -o mq_main ${LINKING_FLAGS}

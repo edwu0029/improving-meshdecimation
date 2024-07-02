@@ -37,6 +37,7 @@ int ParallelMesh::reduceVerticesTo(int nrVertices, int countThreads)
 #endif
 	int size = static_cast<int>(m_vertices.size());
 
+#ifndef SINGLE_THREADED
 #pragma omp parallel num_threads(num_threads)
 	{
 #pragma omp for nowait schedule(guided)
@@ -48,6 +49,14 @@ int ParallelMesh::reduceVerticesTo(int nrVertices, int countThreads)
 		num_cur_threads--;
 #pragma omp barrier
 	}
+#else
+	for (int i = 0; i < m_vertices.size() - finalVertexCount; i++)
+	{	
+		int collapseVertexIndex = m_priorityStructure->pop();
+		m_vertices[collapseVertexIndex].collapse(collapseVertexIndex);
+	}
+	num_cur_threads--;
+#endif
 #ifndef BENCHMARK
 	m_priorityStructure->debugCheckHeap();
 #endif // !BENCHMARK

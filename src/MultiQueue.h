@@ -22,7 +22,7 @@ public:
 
 #ifndef SINGLE_THREADED_LOADING
 	void lock(int vertexId) {
-		&m_vertexLocks[vertexId].lock();
+		m_vertexLocks[vertexId].lock();
 	}
 
 	void unlock(int vertexId) {
@@ -81,6 +81,9 @@ private:
 	std::vector<std::atomic<int>> m_nodeLookup; // A lookup to check which Vertex has which node
 	ParallelMesh& m_mesh;
 	std::vector<int> m_last; // Index of the Node that is to be deleted on pop, the last element in the queue;
+
+
+	std::vector<std::atomic<float>> bestError;
 
 	double m_summedError = 0;
 	std::vector<std::atomic<int>> m_adjacentToCollapses; // increases by one if an collapse is performed on adjacent vertex or itself decreased by one when finished to prevent use in collapse when error is uncertain

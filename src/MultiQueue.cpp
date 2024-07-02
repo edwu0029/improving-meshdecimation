@@ -34,19 +34,20 @@ MultiQueue::MultiQueue(int countVertices, int countQueues) : m_mesh(ParallelMesh
 			additionalElement = 0;
 		m_last[i] = m_queueSize * (i + 1) - additionalElement - 1;
 	}
-	int spincount = 0x01001000;
+
+	//int spincount = 0x01001000;
 #ifndef SINGLE_THREADED_LOADING
 	m_vertexLocks = std::vector<std::mutex>(m_size);
-	for(int i = 0; i < m_size; i++) {
-		// if(!InitializeCriticalSectionAndSpinCount(&m_vertexLocks[i], spincount))
-			// __debugbreak();
-	}
+	// for(int i = 0; i < m_size; i++) {
+	// 	if(!InitializeCriticalSectionAndSpinCount(&m_vertexLocks[i], spincount))
+	// 		__debugbreak();
+	// }
 #endif
 	m_queueLocks = std::vector<std::mutex>(m_countQueues);
-	for(int i = 0; i < m_countQueues; i++) {
-		// if(!InitializeCriticalSectionAndSpinCount(&m_queueLocks[i], spincount))
-			// __debugbreak();
-	}
+	// for(int i = 0; i < m_countQueues; i++) {
+	// 	if(!InitializeCriticalSectionAndSpinCount(&m_queueLocks[i], spincount))
+	// 		__debugbreak();
+	// }
 
 }
 

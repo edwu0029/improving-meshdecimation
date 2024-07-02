@@ -1,17 +1,17 @@
 #pragma once
 #include <string>
 
-const std::string MESH_PATH = "/ceph/inputs/mesh/bunny.obj";
+const std::string MESH_PATH = "/ceph/inputs/mesh/pirate.obj";
 const std::string OUTPUT_DIRECTORY = "/ceph/users/wuedwar5/home/Mesh-Decimation/results";
 const unsigned int DESIRED_NUMBER_OF_VERTICES = 1000;
 
 constexpr int slotSize = 8;
-const int NUM_THREADS = 1;
+const int NUM_THREADS = 15;
 
-constexpr int countIterations = 1;
+constexpr int countIterations = 100;
 
 #define MULTI_QUEUE
-//#define SINGLE_THREADED
+#define SINGLE_THREADED
 #define NEXT_BEST_ERROR // If the collapse is invalid (topology check) the next best vertex to collapse to is searched instead and the PQ updated instead of disallowing HECs from this vertex 
 #define TRIANGLE_INDICES // Uses Triangle indices instead of saving every triangle in every vertex (faster)
 #define SINGLE_THREADED_LOADING // makes the loading single threaded MT seems to work but was not used for the benchmarks (because loading is not included in the total times)
