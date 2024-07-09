@@ -320,7 +320,7 @@ void ParallelMesh::computeQuadricErrorMatrices(int countThreads) {
 #ifndef SINGLE_THREADED
 	m_priorityStructure->setErrors(errorValues, countThreads);
 #else
-	m_priorityStructure->setErrors(errorValues, countThreads); // If single threaded, countThreads = 1
+	m_priorityStructure->setErrors(errorValues); // If single threaded, countThreads = 1
 #endif // !SINGLE_THREADED
 
 }

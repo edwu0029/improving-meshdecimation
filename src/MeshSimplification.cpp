@@ -230,10 +230,10 @@ int main()
     std::vector<int> threads = { { 1 } };
 #else
 #ifdef BENCHMARK_DEBUG
-    std::vector<int> threads = { { NUM_THREADS, 1, 2, 4, 8, 12, 16, 20, 24, 28, 30, 32 } };
+    std::vector<int> threads = { { NUM_THREADS } };
 #else
     //std::vector<int> threads = { {1, 2, 4, 8, 12, 16, 20, 24, 28, 30, 32 } };
-    std::vector<int> threads = { { 1,2,4,8,16,24,32 } };
+    std::vector<int> threads = { { NUM_THREADS } };
     //std::vector<int> threads = { { 4 } };
 #endif
 #endif // SINGLE_THREADED
