@@ -1,14 +1,17 @@
 #pragma once
 #include <string>
 
-const std::string MESH_PATH = "/ceph/inputs/mesh/dragon.obj";
+const std::string MESH_PATH = "/ceph/inputs/mesh/bunny.obj";
 const std::string OUTPUT_DIRECTORY = "/ceph/users/wuedwar5/home/Mesh-Decimation/results";
 const unsigned int DESIRED_NUMBER_OF_VERTICES = 10000;
 
-constexpr int slotSize = 8;
-const int NUM_THREADS = 15;
+const float DECIMATION_PERCENT = 1; // For decimation to 1% of verticies, use 1
 
-constexpr int countIterations = 1;
+
+constexpr int slotSize = 8;
+const int NUM_THREADS = 1;
+
+constexpr int countIterations = 10;
 
 #define MULTI_QUEUE
 //#define SINGLE_THREADED

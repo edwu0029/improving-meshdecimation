@@ -10,9 +10,9 @@
 class ParallelMesh;
 
 // Our implementation for mesh decimation using a multi queue
-class MultiQueue {
+class UpdateMultiQueue {
 public:
-	MultiQueue(int countVertices, int countQueues);
+	UpdateMultiQueue(int countVertices, int countQueues);
 	void setErrors(std::vector<std::pair<float, int>> errorValues, int countThreads);
 
 	int pop(); // returns vertexId of node to pop
@@ -83,7 +83,7 @@ private:
 	std::vector<int> m_last; // Index of the Node that is to be deleted on pop, the last element in the queue;
 
 
-	std::vector<std::atomic<float>> bestError; // Maintain the best error at a vertex
+	std::vector<std::atomic<float>> bestError;
 
 	double m_summedError = 0;
 	std::vector<std::atomic<int>> m_adjacentToCollapses; // increases by one if an collapse is performed on adjacent vertex or itself decreased by one when finished to prevent use in collapse when error is uncertain

@@ -3,7 +3,7 @@
 #include <cassert>
 #include <random>
 
-#include "MultiQueue.h"
+#include "UpdateMultiQueue.h"
 #include "Vertex.h"
 #include "ParallelMesh.h"
 
@@ -12,7 +12,7 @@
 #define LEFT_CHILD_NODE_ID (nodeId * 2 + 1)
 #define RIGHT_CHILD_NODE_ID (nodeId * 2 + 2)
 
-MultiQueue::MultiQueue(int countVertices, int countQueues) : m_mesh(ParallelMesh::getInstance()) {
+UpdateMultiQueue::UpdateMultiQueue(int countVertices, int countQueues) : m_mesh(ParallelMesh::getInstance()) {
 	m_countQueues = countQueues;
 	m_queueSize = countVertices / m_countQueues;
 	int queueMod = countVertices % m_countQueues;
@@ -51,7 +51,7 @@ MultiQueue::MultiQueue(int countVertices, int countQueues) : m_mesh(ParallelMesh
 
 }
 
-void MultiQueue::setErrors(std::vector<std::pair<float, int>> errorValues, int countThreads) {
+void UpdateMultiQueue::setErrors(std::vector<std::pair<float, int>> errorValues, int countThreads) {
 	std::sort(std::execution::par_unseq, errorValues.begin(), errorValues.end(), std::less<std::pair<float, int>>());
 #pragma omp parallel for num_threads(countThreads)
 	for(int i = 0; i < errorValues.size(); i++) {
@@ -66,7 +66,7 @@ void MultiQueue::setErrors(std::vector<std::pair<float, int>> errorValues, int c
 		m_nodeLookup[errorValues[i].second] = index;
 	}
 }
-int MultiQueue::pop() {
+int UpdateMultiQueue::pop() {
 
 	thread_local static std::random_device rd;
 	//thread_local static PCG64 rng(rd());
@@ -110,8 +110,6 @@ int MultiQueue::pop() {
 			m_queueLocks[queueId1].unlock();
 			queueId = queueId2;
 		}
-		// queueId is the queue with the best (lowest) error
-		
 		popIndex = queueId * m_queueSize;
 		int lastValidPos = -1;
 		if(increaseAdjacentCollapses(vertexId)) { // returns true if adjacent collapses == 0			
@@ -242,7 +240,7 @@ int MultiQueue::pop() {
 	return vertexId;
 }
 
-void MultiQueue::update(volatile int vertexId) {
+void UpdateMultiQueue::update(volatile int vertexId) {
 	
 	int vertexNodeId = m_nodeLookup[vertexId];
 	int queueId = getQueueId(vertexNodeId);
@@ -279,11 +277,11 @@ void MultiQueue::update(volatile int vertexId) {
 	//debugCheckHeap();
 }
 
-void MultiQueue::debugCheckHeap() {
+void UpdateMultiQueue::debugCheckHeap() {
 	// We dont do that here
 }
 
-int MultiQueue::repairDown(int nodeId, int queueId) {
+int UpdateMultiQueue::repairDown(int nodeId, int queueId) {
 	volatile int leftChildNodeId, rightChildNodeId;
 
 	int offset = queueId * m_queueSize;
@@ -341,7 +339,7 @@ int MultiQueue::repairDown(int nodeId, int queueId) {
 	return nextNodeId;
 }
 
-bool MultiQueue::repairUp(int nodeId, int queueId) {
+bool UpdateMultiQueue::repairUp(int nodeId, int queueId) {
 	int offset = queueId * m_queueSize;
 	int parentNodeId = PARENT_NODE_ID;
 	int parentVertexId = m_nodes[parentNodeId + offset];

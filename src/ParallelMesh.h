@@ -11,6 +11,7 @@
 
 #include "PriorityQueueSingleThreaded.h"
 #include "MultiQueue.h"
+#include "UpdateMultiQueue.h"
 #include "FPPQ.h"
 #include "FPPQMesh.h"
 
@@ -23,6 +24,7 @@ public:
 	friend ErrorMetric;
 	friend QuadricErrorMetric;
 	friend MultiQueue;
+	friend UpdateMultiQueue;
 	friend FPPQMesh;
 
 	static ParallelMesh& getInstance() {

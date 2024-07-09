@@ -51,6 +51,8 @@ int main()
 
     std::string benchmarkName = methodName + "_" + meshName;
 
+    int totalVerticies; //Total Verticies at load
+
 #ifndef BENCHMARK
     auto t0 = Clock::now();
     std::cout << "Starting Load" << std::endl;
@@ -199,7 +201,7 @@ int main()
         << " Iterations: " << countIterations
 #ifndef BENCHMARK_DEBUG
 #else
-        << " Desired Vertex Count: " << DESIRED_NUMBER_OF_VERTICES
+        << " Desired Vertex Count: " << (int)(totalVerticies*(0.01*DECIMATION_PERCENT))
 #endif
         << std::endl;
     auto t0 = Clock::now();
@@ -209,7 +211,7 @@ int main()
             << MESH_PATH << std::endl;
         return -1;
     }
-
+    totalVerticies = pMesh.getVertices().size();
     std::cout << "Num of Verticies:" << pMesh.getVertices().size() << std::endl;
     std::cout << "Num of Faces:" << pMesh.getFaces().size() << std::endl;
     
@@ -269,7 +271,7 @@ int main()
         // Similarity reference
         std::string percent;
 #ifdef BENCHMARK_DEBUG
-        int decimation = DESIRED_NUMBER_OF_VERTICES;
+        int decimation = (int)(totalVerticies *(0.01*DECIMATION_PERCENT));
         percent = std::to_string(int(decimation));
 #else
         if(percentiles[k] >= 0.01f) {
@@ -287,7 +289,7 @@ int main()
         } else {
             std::cout << "No reference for mesh similarity found: "  << percent << std::endl;
         }
-        std::cout << "Number of threads: " << threads.size() << std::endl;
+        //std::cout << "Number of threads: " << threads.size() << std::endl;
         for (int j = 0; j < threads.size(); j++) {
             for (int i = 0; i < countIterations; i++) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -303,7 +305,7 @@ int main()
                 
                 int finalVertexCount = pMesh.reduceVerticesTo(decimation, threads[j]);
 #endif
-                std::cout << finalVertexCount << std::endl;
+                // std::cout << finalVertexCount << std::endl;
                 
                 //barrierCounter++;
                 auto tx2 = Clock::now();
@@ -336,15 +338,15 @@ int main()
                 //geometricDeviation(originVertices, originFaces, hausdorfVertices, hausdorfFaces);
 #endif // !SINGLE_THREADED_EXTRAS
 
-                std::cout << "It: "
-                    << i << ": Dez: "
+                std::cout << "Iteration: "
+                    << i << ": Decimation: "
                     << std::chrono::duration_cast<std::chrono::milliseconds>(iterationTimesDecimation[i]).count()
-                    << " ms Comp: "
+                    << " ms Complete: "
                     << std::chrono::duration_cast<std::chrono::milliseconds>(tx3 - tx0).count() << " ms" <<
-                    " Hd RSME: " << hausdorffMean[i] <<
-                    " Hd Max: " << hausdorffMax[i] <<
-                    " vSim: " << vSim[i] <<
-                    " fSim: " << fSim[i] <<
+                    // " Hd RSME: " << hausdorffMean[i] <<
+                    // " Hd Max: " << hausdorffMax[i] <<
+                    // " vSim: " << vSim[i] <<
+                    // " fSim: " << fSim[i] <<
                     std::endl;
 
 
@@ -374,14 +376,13 @@ int main()
             auto t3 = Clock::now();
             std::string percent;
 #ifdef BENCHMARK_DEBUG
-            percent = std::to_string(DESIRED_NUMBER_OF_VERTICES);
+            percent = std::to_string(DECIMATION_PERCENT);
 #endif
-            std::cout << benchmarkName << std::endl << "Total Time: "
-                << std::chrono::duration_cast<std::chrono::seconds>(t3 - t0).count() << "s"
-                << " Count Iterations: " << countIterations
-                << " Threads: " << threads[j]
-                << " Desired Vertex Count: " << percent
-                << std::endl;
+            // std::cout << benchmarkName << std::endl << "Total Time: "
+            //     << std::chrono::duration_cast<std::chrono::seconds>(t3 - t0).count() << "s"
+            //     << " Count Iterations: " << countIterations
+            //     << " Desired Vertex Count: " << percent
+            //     << std::endl;
             double summedHausdorffMean = 0;
             double summedHausdorffMax = 0;
             double summedvSim = 0;
@@ -410,137 +411,138 @@ int main()
             int median = countIterations / 2;
             int tenth = countIterations / 10;
 
-            std::cout << "Hausdorf RSME: "
-                << "min: " << hausdorffMean[0]
-                << " max: " << hausdorffMean[countIterations - 1]
-                << " med: " << hausdorffMean[median]
-                << " avg: " << summedHausdorffMean / countIterations
-                << " 10%: " << hausdorffMean[tenth]
-                << " 90%: " << hausdorffMean[countIterations - 1 - tenth]
-                << std::endl;
-            std::cout << "Hausdorf Max: "
-                << "min: " << hausdorffMax[0]
-                << " max: " << hausdorffMax[countIterations - 1]
-                << " med: " << hausdorffMax[median]
-                << " avg: " << summedHausdorffMax / countIterations
-                << " 10%: " << hausdorffMax[tenth]
-                << " 90%: " << hausdorffMax[countIterations - 1 - tenth]
-                << std::endl;
-            std::cout << "vSim: "
-                << "min: " << vSim[0]
-                << " max: " << vSim[countIterations - 1]
-                << " med: " << vSim[median]
-                << " avg: " << summedvSim / countIterations
-                << " 10%: " << vSim[tenth]
-                << " 90%: " << vSim[countIterations - 1 - tenth]
-                << std::endl;
-            std::cout << "fSim: "
-                << "min: " << fSim[0]
-                << " max: " << fSim[countIterations - 1]
-                << " med: " << fSim[median]
-                << " avg: " << summedfSim / countIterations
-                << " 10%: " << fSim[tenth]
-                << " 90%: " << fSim[countIterations - 1 - tenth]
-                << std::endl;
-            std::cout << "Init Time: "
-                << "min: " << iterationTimesInit[0].count() / 1000
-                << " max: " << iterationTimesInit[countIterations - 1].count() / 1000
-                << " med: " << iterationTimesInit[median].count() / 1000
-                << " avg: " << (summedInit / countIterations).count() / 1000
-                << " 10%: " << iterationTimesInit[tenth].count() / 1000
-                << " 90%: " << iterationTimesInit[countIterations - 1 - tenth].count() / 1000
-                << std::endl;
-            std::cout << "Decimation Time: "
-                << "min: " << iterationTimesDecimation[0].count() / 1000
-                << " max: " << iterationTimesDecimation[countIterations - 1].count() / 1000
-                << " med: " << iterationTimesDecimation[median].count() / 1000
-                << " avg: " << (summedDecimation / countIterations).count() / 1000
-                << " 10%: " << iterationTimesDecimation[tenth].count() / 1000
-                << " 90%: " << iterationTimesDecimation[countIterations - 1 - tenth].count() / 1000
-                << std::endl;
-            std::cout << "Delete Time: "
-                << "min: " << iterationTimesDelete[0].count() / 1000
-                << " max: " << iterationTimesDelete[countIterations - 1].count() / 1000
-                << " med: " << iterationTimesDelete[median].count() / 1000
-                << " avg: " << (summedDelete / countIterations).count() / 1000
-                << " 10%: " << iterationTimesDelete[tenth].count() / 1000
-                << " 90%: " << iterationTimesDelete[countIterations - 1 - tenth].count() / 1000
-                << std::endl;
-            std::cout << "Complete Time: "
-                << "min: " << iterationTimesComplete[0].count() / 1000
-                << " max: " << iterationTimesComplete[countIterations - 1].count() / 1000
-                << " med: " << iterationTimesComplete[median].count() / 1000
-                << " avg: " << (summedComplete / countIterations).count() / 1000
-                << " 10%: " << iterationTimesComplete[tenth].count() / 1000
-                << " 90%: " << iterationTimesComplete[countIterations - 1 - tenth].count() / 1000
-                << std::endl;
+            // std::cout << "Hausdorf RSME: "
+            //     << "min: " << hausdorffMean[0]
+            //     << " max: " << hausdorffMean[countIterations - 1]
+            //     << " med: " << hausdorffMean[median]
+            //     << " avg: " << summedHausdorffMean / countIterations
+            //     << " 10%: " << hausdorffMean[tenth]
+            //     << " 90%: " << hausdorffMean[countIterations - 1 - tenth]
+            //     << std::endl;
+            // std::cout << "Hausdorf Max: "
+            //     << "min: " << hausdorffMax[0]
+            //     << " max: " << hausdorffMax[countIterations - 1]
+            //     << " med: " << hausdorffMax[median]
+            //     << " avg: " << summedHausdorffMax / countIterations
+            //     << " 10%: " << hausdorffMax[tenth]
+            //     << " 90%: " << hausdorffMax[countIterations - 1 - tenth]
+            //     << std::endl;
+            // std::cout << "vSim: "
+            //     << "min: " << vSim[0]
+            //     << " max: " << vSim[countIterations - 1]
+            //     << " med: " << vSim[median]
+            //     << " avg: " << summedvSim / countIterations
+            //     << " 10%: " << vSim[tenth]
+            //     << " 90%: " << vSim[countIterations - 1 - tenth]
+            //     << std::endl;
+            // std::cout << "fSim: "
+            //     << "min: " << fSim[0]
+            //     << " max: " << fSim[countIterations - 1]
+            //     << " med: " << fSim[median]
+            //     << " avg: " << summedfSim / countIterations
+            //     << " 10%: " << fSim[tenth]
+            //     << " 90%: " << fSim[countIterations - 1 - tenth]
+            //     << std::endl;
+            // std::cout << "Init Time: "
+            //     << "min: " << iterationTimesInit[0].count() / 1000
+            //     << " max: " << iterationTimesInit[countIterations - 1].count() / 1000
+            //     << " med: " << iterationTimesInit[median].count() / 1000
+            //     << " avg: " << (summedInit / countIterations).count() / 1000
+            //     << " 10%: " << iterationTimesInit[tenth].count() / 1000
+            //     << " 90%: " << iterationTimesInit[countIterations - 1 - tenth].count() / 1000
+            //     << std::endl;
+            // std::cout << "Decimation Time: "
+            //     << "min: " << iterationTimesDecimation[0].count() / 1000
+            //     << " max: " << iterationTimesDecimation[countIterations - 1].count() / 1000
+            //     << " med: " << iterationTimesDecimation[median].count() / 1000
+            //     << " avg: " << (summedDecimation / countIterations).count() / 1000
+            //     << " 10%: " << iterationTimesDecimation[tenth].count() / 1000
+            //     << " 90%: " << iterationTimesDecimation[countIterations - 1 - tenth].count() / 1000
+            //     << std::endl;
+            // std::cout << "Delete Time: "
+            //     << "min: " << iterationTimesDelete[0].count() / 1000
+            //     << " max: " << iterationTimesDelete[countIterations - 1].count() / 1000
+            //     << " med: " << iterationTimesDelete[median].count() / 1000
+            //     << " avg: " << (summedDelete / countIterations).count() / 1000
+            //     << " 10%: " << iterationTimesDelete[tenth].count() / 1000
+            //     << " 90%: " << iterationTimesDelete[countIterations - 1 - tenth].count() / 1000
+            //     << std::endl;
+            // std::cout << "Complete Time: "
+            //     << "min: " << iterationTimesComplete[0].count() / 1000
+            //     << " max: " << iterationTimesComplete[countIterations - 1].count() / 1000
+            //     << " med: " << iterationTimesComplete[median].count() / 1000
+            //     << " avg: " << (summedComplete / countIterations).count() / 1000
+            //     << " 10%: " << iterationTimesComplete[tenth].count() / 1000
+            //     << " 90%: " << iterationTimesComplete[countIterations - 1 - tenth].count() / 1000
+            //     << std::endl;
 
-            std::string benchmarkToken = benchmarkName + "_" + std::to_string(threads[j]);
-            benchmarkToken += "_" + percent;
-            benchmarkToken += "_" + std::to_string(countIterations) + "it";
+            // std::string benchmarkToken = benchmarkName + "_" + std::to_string(threads[j]);
+            // benchmarkToken += "_" + percent;
+            // benchmarkToken += "_" + std::to_string(countIterations) + "it";
 
             
-            std::filesystem::create_directory(OUTPUT_DIRECTORY + "/Results");
-            std::filesystem::create_directory(OUTPUT_DIRECTORY + "/Results/" + benchmarkName);
-            int retryCount = 0;
-            std::ofstream resultFile(OUTPUT_DIRECTORY + "/Results/" + benchmarkName + "/" + benchmarkToken + "_result.txt");
-            while (!resultFile.is_open())
-            {
-                retryCount++;
-                resultFile.open(OUTPUT_DIRECTORY + "/Results/" + benchmarkName + "/" + benchmarkToken + "_result_" + std::to_string(retryCount) + ".txt");
-            }
-            {
-                resultFile << "Iterations: " << std::to_string(countIterations) << std::endl;
+            // std::filesystem::create_directory(OUTPUT_DIRECTORY);
+            // std::filesystem::create_directory(OUTPUT_DIRECTORY + benchmarkName);
+            // int retryCount = 0;
+            // std::ofstream resultFile(OUTPUT_DIRECTORY + benchmarkName + "/" + benchmarkToken + "_result.txt");
+            // while (!resultFile.is_open())
+            // {
+            //     retryCount++;
+            //     resultFile.open(OUTPUT_DIRECTORY + "/Results/" + benchmarkName + "/" + benchmarkToken + "_result_" + std::to_string(retryCount) + ".txt");
+            // }
+            // {
+                std::cout << std::endl << "Iterations: " << std::to_string(countIterations) << std::endl;
 #ifdef BENCHMARK_DEBUG
-                resultFile << "Desired Vertex Count: " << DESIRED_NUMBER_OF_VERTICES << std::endl;
+                std::cout << "Desired Vertex Count: " << (int)(totalVerticies *(0.01*DECIMATION_PERCENT)) << std::endl;
+                std::cout << "Decimation Percent: " << DECIMATION_PERCENT << std::endl;
 #endif
-                resultFile << "Hausdorf RMSE: "
-                    << "min: " << hausdorffMean[0]
-                    << " max: " << hausdorffMean[countIterations - 1]
-                    << " med: " << hausdorffMean[median]
-                    << " avg: " << summedHausdorffMean / countIterations
-                    << " 10%: " << hausdorffMean[tenth]
-                    << " 90%: " << hausdorffMean[countIterations - 1 - tenth]
+                // resultFile << "Hausdorf RMSE: "
+                //     << "min: " << hausdorffMean[0]
+                //     << " max: " << hausdorffMean[countIterations - 1]
+                //     << " med: " << hausdorffMean[median]
+                //     << " avg: " << summedHausdorffMean / countIterations
+                //     << " 10%: " << hausdorffMean[tenth]
+                //     << " 90%: " << hausdorffMean[countIterations - 1 - tenth]
+                //     << std::endl;
+                // resultFile << "Hausdorf Max: "
+                //     << "min: " << hausdorffMax[0]
+                //     << " max: " << hausdorffMax[countIterations - 1]
+                //     << " med: " << hausdorffMax[median]
+                //     << " avg: " << summedHausdorffMax / countIterations
+                //     << " 10%: " << hausdorffMax[tenth]
+                //     << " 90%: " << hausdorffMax[countIterations - 1 - tenth]
+                //     << std::endl;
+                // resultFile << "vSim: "
+                //     << "min: " << vSim[0]
+                //     << " max: " << vSim[countIterations - 1]
+                //     << " med: " << vSim[median]
+                //     << " avg: " << summedvSim / countIterations
+                //     << " 10%: " << vSim[tenth]
+                //     << " 90%: " << vSim[countIterations - 1 - tenth]
+                //     << std::endl;
+                // resultFile << "fSim: "
+                //     << "min: " << fSim[0]
+                //     << " max: " << fSim[countIterations - 1]
+                //     << " med: " << fSim[median]
+                //     << " avg: " << summedfSim / countIterations
+                //     << " 10%: " << fSim[tenth]
+                //     << " 90%: " << fSim[countIterations - 1 - tenth]
+                //     << std::endl;
+                std::cout << "Decimation Time: (ms)"
+                    << "min: " << iterationTimesDecimation[0].count()/1000
+                    << " max: " << iterationTimesDecimation[countIterations - 1].count()/1000
+                    << " med: " << iterationTimesDecimation[median].count()/1000
+                    << " avg: " << (summedDecimation / countIterations).count()/1000
+                    << " 10%: " << iterationTimesDecimation[tenth].count()/1000
+                    << " 90%: " << iterationTimesDecimation[countIterations - 1 - tenth].count()/1000
                     << std::endl;
-                resultFile << "Hausdorf Max: "
-                    << "min: " << hausdorffMax[0]
-                    << " max: " << hausdorffMax[countIterations - 1]
-                    << " med: " << hausdorffMax[median]
-                    << " avg: " << summedHausdorffMax / countIterations
-                    << " 10%: " << hausdorffMax[tenth]
-                    << " 90%: " << hausdorffMax[countIterations - 1 - tenth]
-                    << std::endl;
-                resultFile << "vSim: "
-                    << "min: " << vSim[0]
-                    << " max: " << vSim[countIterations - 1]
-                    << " med: " << vSim[median]
-                    << " avg: " << summedvSim / countIterations
-                    << " 10%: " << vSim[tenth]
-                    << " 90%: " << vSim[countIterations - 1 - tenth]
-                    << std::endl;
-                resultFile << "fSim: "
-                    << "min: " << fSim[0]
-                    << " max: " << fSim[countIterations - 1]
-                    << " med: " << fSim[median]
-                    << " avg: " << summedfSim / countIterations
-                    << " 10%: " << fSim[tenth]
-                    << " 90%: " << fSim[countIterations - 1 - tenth]
-                    << std::endl;
-                resultFile << "Decimation Time: "
-                    << "min: " << iterationTimesDecimation[0].count()
-                    << " max: " << iterationTimesDecimation[countIterations - 1].count()
-                    << " med: " << iterationTimesDecimation[median].count()
-                    << " avg: " << (summedDecimation / countIterations).count()
-                    << " 10%: " << iterationTimesDecimation[tenth].count()
-                    << " 90%: " << iterationTimesDecimation[countIterations - 1 - tenth].count()
-                    << std::endl;
-                resultFile << "Complete Time: "
-                    << "min: " << iterationTimesComplete[0].count()
-                    << " max: " << iterationTimesComplete[countIterations - 1].count()
-                    << " med: " << iterationTimesComplete[median].count()
-                    << " avg: " << (summedComplete / countIterations).count()
-                    << " 10%: " << iterationTimesComplete[tenth].count()
-                    << " 90%: " << iterationTimesComplete[countIterations - 1 - tenth].count()
+                std::cout << "Complete Time: (microseconds)"
+                    << "min: " << iterationTimesComplete[0].count()/1000
+                    << " max: " << iterationTimesComplete[countIterations - 1].count()/1000
+                    << " med: " << iterationTimesComplete[median].count()/1000
+                    << " avg: " << (summedComplete / countIterations).count()/1000
+                    << " 10%: " << iterationTimesComplete[tenth].count()/1000
+                    << " 90%: " << iterationTimesComplete[countIterations - 1 - tenth].count()/1000
                     << std::endl;
             }
             
@@ -557,8 +559,8 @@ int main()
                 fSimTotal[k * threads.size() * countIterations + j * countIterations + i] = fSim[i];
             }
 #endif
-            resultFile.close();
-        }
+        //     resultFile.close();
+        // }
 
     }
     std::pair<std::vector<glm::vec3>, std::vector<glm::vec3>> data = pMesh.getData();
