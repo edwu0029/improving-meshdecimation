@@ -23,9 +23,9 @@ typedef std::chrono::high_resolution_clock Clock;
 void exportObj(std::string rootPath, std::vector<glm::vec3> vertices, std::vector<glm::ivec3> faces, std::string ModelName, std::string suffix) {
     std::filesystem::create_directory(rootPath + "/Models");
     std::filesystem::create_directory(rootPath + "/Models/" + ModelName);
-    std::ofstream outFile(rootPath + "/Models/" + ModelName + "/" + ModelName + suffix +".obj");
+    std::ofstream outFile(rootPath + "/Models/" + ModelName + "/dec_" + suffix +".obj");
 
-    outFile << "o " + ModelName + suffix << std::endl;
+    outFile << "o " + suffix << std::endl;
 
     for (auto& vertex : vertices) {
         outFile << "v " + std::to_string(vertex.x) + " " + std::to_string(vertex.y) + " " + std::to_string(vertex.z) << std::endl;
@@ -239,11 +239,11 @@ int main()
     //std::vector<int> threads = { { 4 } };
 #endif
 #endif // SINGLE_THREADED
-#ifndef NO_HAUSDORFF
-    std::vector<glm::vec3 > hausdorfVertices;
-    std::vector<glm::ivec3 > hausdorfFaces;
+// #ifndef NO_HAUSDORFF
+    std::vector<glm::vec3 > decimatedVertices;
+    std::vector<glm::ivec3 > decimatedFaces;
 
-#endif // !NO_HAUSDORFF
+//#endif // !NO_HAUSDORFF
 
 #ifndef BENCHMARK_DEBUG
     std::vector<float> percentiles;
@@ -323,19 +323,23 @@ int main()
 #if defined NO_HAUSDORFF
                 hausdorffMean[i] = 0;
                 hausdorffMax[i] = 0;
+                
+                //Required for exporting
+                decimatedVertices = pMesh.getVertices();
+                decimatedFaces = pMesh.getFaces();
 #else
-                hausdorfVertices = pMesh.getVertices();
-                hausdorfFaces = pMesh.getFaces();
+                decimatedVertices = pMesh.getVertices();
+                decimatedFaces = pMesh.getFaces();
                 double mean, max;
-                MeshMetrics::computeHausdorff(originVertices, originFaces, hausdorfVertices, hausdorfFaces, mean, max);
+                MeshMetrics::computeHausdorff(originVertices, originFaces, decimatedVertices, decimatedFaces, mean, max);
                 hausdorffMean[i] = mean;
                 hausdorffMax[i] = max;
                 double vRatio = 0, fRatio = 0;
                 if(refFound)
-                    MeshMetrics::computeSimilarity(refVertices, refFaces, hausdorfVertices, hausdorfFaces, vRatio, fRatio);
+                    MeshMetrics::computeSimilarity(refVertices, refFaces, decimatedVertices, decimatedFaces, vRatio, fRatio);
                 vSim[i] = vRatio;
                 fSim[i] = fRatio;
-                //geometricDeviation(originVertices, originFaces, hausdorfVertices, hausdorfFaces);
+                //geometricDeviation(originVertices, originFaces, decimatedVertices, decimatedFaces);
 #endif // !SINGLE_THREADED_EXTRAS
 
                 std::cout << "Iteration: "
@@ -354,17 +358,15 @@ int main()
                 //if(hausdorffMean[i] < 0.0000185 *1.005 && hausdorffMean[i] > 0.0000185 *0.995)
                 {
                     std::stringstream ss;
-                    ss << std::fixed << std::setprecision(12) << hausdorffMean[i];
+                    //ss << std::fixed << std::setprecision(12) << hausdorffMean[i];
 
                     std::string hausdorff = ss.str();
                     std::replace(hausdorff.begin(), hausdorff.end(), '.', ',');
 
 
+                    std::string suffix = methodName+"_thr"+std::to_string(threads[j])+"_"+std::to_string((int)DECIMATION_PERCENT)+"_"+meshName;
 
-                    std::string suffix = std::to_string(decimation) + "_" + std::to_string(threads[j]) + "_" + methodName + "_HD" + hausdorff;
-
-
-                    exportObj(OUTPUT_DIRECTORY, hausdorfVertices, hausdorfFaces, meshName, suffix);
+                    exportObj(OUTPUT_DIRECTORY, decimatedVertices, decimatedFaces, meshName, suffix);
                     std::cout << "Exported" << std::endl;
 
                 }

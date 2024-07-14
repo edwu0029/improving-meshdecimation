@@ -5,7 +5,7 @@ const std::string MESH_PATH = "/ceph/inputs/mesh/bunny.obj";
 const std::string OUTPUT_DIRECTORY = "/ceph/users/wuedwar5/home/Mesh-Decimation/results";
 const unsigned int DESIRED_NUMBER_OF_VERTICES = 10000;
 
-const float DECIMATION_PERCENT = 1; // For decimation to 1% of verticies, use 1
+const float DECIMATION_PERCENT = 5; // For decimation to 1% of verticies, use 1
 
 
 constexpr int slotSize = 8;
@@ -24,7 +24,7 @@ constexpr int countIterations = 10;
 #define BENCHMARK 1
 #define BENCHMARK_DEBUG 1 // have NUM_THREADS as first benchmark and decimate to DESIRED_NUMBER_OF_VERTICES
 #define NO_HAUSDORFF
-//#define EXPORT // Export the obj after decimation
+#define EXPORT // Export the obj after decimation
 #define NO_DEBUG_CHECKS // Disables some debug checks
 #define VECTOR_REDUCTION // Use a vector as a map for the final reduction step (is faster but uses more memory)
 
