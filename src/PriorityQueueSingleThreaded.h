@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <mutex>
+#include <iostream>
 // #include <Windows.Foundation.h>
 class ParallelMesh;
 
@@ -27,12 +28,14 @@ public:
 		return m_nodes;
 	}
 
-
 	int repairDown(int nodeId);
 	bool repairUp(int nodeId);
 #ifndef SINGLE_THREADED_LOADING
 	std::vector<std::mutex> m_vertexLocks; // for initialisation
 #endif
+
+	int size;
+
 	int m_size;
 	std::vector<float> m_tmpError; // A temporary error for every vertex used to maintain the structure
 	std::vector<int> m_nodes; // Left child: m_nodeId * 2 + 1; Right child: m_nodeId * 2 + 2; Parent: (m_nodeId - 1) / 2 ;

@@ -325,8 +325,9 @@ int main()
                 hausdorffMax[i] = 0;
                 
                 //Required for exporting
-                decimatedFaces = pMesh.getFaces();
                 decimatedVertices = pMesh.getVertices();
+                decimatedFaces = pMesh.getFaces();
+                
                 
 #else
                 decimatedVertices = pMesh.getVertices();

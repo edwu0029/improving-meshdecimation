@@ -100,6 +100,8 @@ bool ParallelMesh::loadFromObj(std::filesystem::path path) {
 
 	m_vertices.resize(vertices.size() / 3);
 
+	std::cout << "Loaded" << std::endl;
+
 #ifdef MULTI_QUEUE
 	m_priorityStructure = new PRIORITY_STRUCTURE(static_cast<int>(vertices.size()) / 3, NUM_THREADS * 2);
 #else

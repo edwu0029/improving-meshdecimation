@@ -11,23 +11,24 @@
 
 PriorityQueueSingleThreaded::PriorityQueueSingleThreaded(int countVertices) : m_mesh(ParallelMesh::getInstance())
 {
+	std::cout << "Started initalization" << std::endl;
+	size = countVertices;
 	m_size = countVertices;
 	m_nodes = std::vector<int>(m_size);
 	m_tmpError = std::vector<float>(m_size);
 
 	m_nodeLookup = std::vector<int>(m_size);
 
-	m_last = m_size - 1;
+	m_last = countVertices - 1;
 	m_repairCount = 0;
 #ifndef SINGLE_THREADED_LOADING
 	m_vertexLocks = std::vector<std::mutex>(m_size);
-	int spincount = 0x01001000;
-	for (int i = 0; i < m_size; i++) {
-		if (!InitializeCriticalSectionAndSpinCount(&m_vertexLocks[i], spincount))
-			// __debugbreak();
-	}
+	// int spincount = 0x01001000;
+	// for (int i = 0; i < m_size; i++) {
+	// 	if (!InitializeCriticalSectionAndSpinCount(&m_vertexLocks[i], spincount))
+	// 		__debugbreak();
+	// }
 #endif
-
 }
 
 void PriorityQueueSingleThreaded::setErrors(std::vector<std::pair<float, int>> errorValues)
