@@ -17,6 +17,15 @@
 
 #undef min
 
+void threadTask(PRIORITY_STRUCTURE *m_priorityStructure, std::vector<Vertex>& m_vertices, int finalVertexCount){
+
+	//If queue not empty and final vertex count is not yet reached
+	while(m_priorityStructure->size>finalVertexCount){
+		int collapseVertexIndex = m_priorityStructure->pop();
+		m_vertices[collapseVertexIndex].collapse(collapseVertexIndex);
+	}
+}
+
 // Reduce the mesh to nrVertices (if it is smaller than 1 it is treated as a percentage) and returns the amount of leftover Vertices
 int ParallelMesh::reduceVerticesTo(float nrVertices, int countThreads) {
 	return reduceVerticesTo(static_cast<int>(m_vertices.size() * nrVertices), countThreads);
@@ -37,17 +46,19 @@ int ParallelMesh::reduceVerticesTo(int nrVertices, int countThreads)
 #endif
 	int size = static_cast<int>(m_vertices.size());
 
+	std::vector<std::thread*> workers;
+
 #ifndef SINGLE_THREADED
-#pragma omp parallel num_threads(num_threads)
-	{
-#pragma omp for nowait schedule(guided)
-		for (int i = 0; i < m_vertices.size() - finalVertexCount; i++)
-		{	
-			int collapseVertexIndex = m_priorityStructure->pop();
-			m_vertices[collapseVertexIndex].collapse(collapseVertexIndex);
-		}
-		num_cur_threads--;
-#pragma omp barrier
+	// Create threads
+	for(int i = 0;i<num_threads;i++){
+		std::thread* newThread = new std::thread(threadTask, m_priorityStructure, std::ref(m_vertices), finalVertexCount);
+		workers.push_back(newThread);
+	}
+
+	// Join threads
+	for(std::thread*&worker: workers){
+		worker->join();
+		delete worker; //Free thread
 	}
 #else
 	for (int i = 0; i < m_vertices.size() - finalVertexCount; i++)
@@ -90,9 +101,9 @@ bool ParallelMesh::loadFromObj(std::filesystem::path path) {
 	m_vertices.resize(vertices.size() / 3);
 
 #ifdef MULTI_QUEUE
-	m_priorityStructure = std::make_unique<PRIORITY_STRUCTURE>(static_cast<int>(vertices.size()) / 3, NUM_THREADS * 2);
+	m_priorityStructure = new PRIORITY_STRUCTURE(static_cast<int>(vertices.size()) / 3, NUM_THREADS * 2);
 #else
-	m_priorityStructure = std::make_unique<PRIORITY_STRUCTURE>(static_cast<int>(vertices.size()) / 3);
+	m_priorityStructure = new PRIORITY_STRUCTURE(static_cast<int>(vertices.size()) / 3);
 #endif // MULTI_QUEUE
 
 	std::mutex csF;
@@ -239,9 +250,9 @@ void ParallelMesh::loadFromData(std::vector<Vertex>&vertices, std::vector<int>&a
 	m_adjacentVerticesIndices = adjacentVerticesIndices;
 	m_faceIndices = faceIndices;
 #ifdef MULTI_QUEUE
-	m_priorityStructure = std::make_unique<PRIORITY_STRUCTURE>(static_cast<int>(vertices.size()), NUM_THREADS * 2);
+	m_priorityStructure = new PRIORITY_STRUCTURE(static_cast<int>(vertices.size()), NUM_THREADS * 2);
 #else
-	m_priorityStructure = std::make_unique<PRIORITY_STRUCTURE>(static_cast<int>(vertices.size()));
+	m_priorityStructure = new PRIORITY_STRUCTURE(static_cast<int>(vertices.size()));
 #endif
 }
 

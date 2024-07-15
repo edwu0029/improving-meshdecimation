@@ -27,7 +27,7 @@ public:
 		return m_nodes;
 	}
 
-private:
+
 	int repairDown(int nodeId);
 	bool repairUp(int nodeId);
 #ifndef SINGLE_THREADED_LOADING

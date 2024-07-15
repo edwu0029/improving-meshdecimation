@@ -18,6 +18,7 @@ MultiQueue::MultiQueue(int countVertices, int countQueues) : m_mesh(ParallelMesh
 	int queueMod = countVertices % m_countQueues;
 	queueMod == 0 ? m_queueSize : m_queueSize++;
 
+	size = countVertices;
 	m_size = m_queueSize * m_countQueues;
 	m_nodes = std::vector<int>(m_size, -1);
 	m_tmpError = std::vector<std::atomic<float>>(m_size);
@@ -238,7 +239,7 @@ int MultiQueue::pop() {
 		}
 		m_queueLocks[queueId].unlock();
 	}
-
+	size--;
 	return vertexId;
 }
 

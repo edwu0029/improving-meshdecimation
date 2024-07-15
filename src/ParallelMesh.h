@@ -161,7 +161,7 @@ private:
 	std::vector<int> m_adjacentVerticesIndices;
 	std::vector<int> m_faceIndices;
 	std::vector<glm::ivec3> m_faces;
-	std::unique_ptr<PRIORITY_STRUCTURE> m_priorityStructure;
+	PRIORITY_STRUCTURE  *m_priorityStructure;
 };
 
 inline glm::vec3 ParallelMesh::getVertexPos(int index) {

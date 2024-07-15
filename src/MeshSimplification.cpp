@@ -309,7 +309,7 @@ int main()
                 
                 //barrierCounter++;
                 auto tx2 = Clock::now();
-                pMesh.reduceVertices(finalVertexCount, threads[j]);
+                //pMesh.reduceVertices(finalVertexCount, threads[j]);
                 pMesh.deletePriorityStructure();
                 //barrierCounter++;
                 auto tx3 = Clock::now();
@@ -325,8 +325,9 @@ int main()
                 hausdorffMax[i] = 0;
                 
                 //Required for exporting
-                decimatedVertices = pMesh.getVertices();
                 decimatedFaces = pMesh.getFaces();
+                decimatedVertices = pMesh.getVertices();
+                
 #else
                 decimatedVertices = pMesh.getVertices();
                 decimatedFaces = pMesh.getFaces();
