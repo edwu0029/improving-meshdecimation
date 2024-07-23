@@ -90,12 +90,6 @@ bool Vertex::removeTriangle(int triangleIndex) {
 	}
 	if (removed) {
 		volatile int pos = (slotSize + 1) * m_vertexIndex + 1;
-		if (faceIndices[pos] == -1) { // Vertex with no Triangles
-			//// __debugbreak();
-			//m_adjacentVerticesIndices.clear();
-			//updateErrorMetric();
-			//return true;
-		}
 		return false;
 	}
 
@@ -127,9 +121,7 @@ void Vertex::updateErrorMetric(int newVertex)
 void Vertex::collapse(int ownIndex)
 {
 #ifndef NO_DEBUG_CHECKS
-	if (!this->deactivate()) {
-		// __debugbreak();
-	}
+
 #else
 	this->deactivate();
 #endif // !NO_DEBUG_CHECKS
@@ -267,7 +259,6 @@ bool Vertex::isValidCollapse()
 	//ParallelMesh::getInstance().unlockVertex(collapseVertexIndex);
 #endif
 	if (countCommonNeigbours != 4) { // itselfs + 2 neigbours are allowed
-		//// __debugbreak();
 		return false;
 	}
 
@@ -355,8 +346,7 @@ bool Vertex::isValidCollapse()
 void Vertex::incommingCollapse(int indexCollapse, int indexToCollapseTo, bool isIndexToCollapseTo)
 {
 #ifndef NO_DEBUG_CHECKS
-	if (!this->isActive())
-		// __debugbreak();
+
 #endif // !NO_DEBUG_CHECKS
 	auto& adjacentVertices = ParallelMesh::getInstance().m_adjacentVerticesIndices;
 	int replacementPos = -1;
@@ -468,8 +458,7 @@ void Vertex::incommingCollapse(int indexCollapse, int indexToCollapseTo, bool is
 							stolenV = true;
 						} else {
 #ifndef NO_DEBUG_CHECKS
-							if(adjacentVertices[currentPos] != -1 && !stolenV)
-								// __debugbreak();
+
 #endif
 						}
 						adjacentVertices[currentPos] = vertexToFind;
@@ -600,8 +589,7 @@ void Vertex::collapseUpdateTriangles(int indexCollapse, int indexToCollapseTo) {
 						faceIndices[startPosWrite] = startPosStealF;
 					stolenF = true;
 #ifndef NO_DEBUG_CHECKS
-					if(startPosStealF == -1)
-						// __debugbreak();
+
 #endif // !NO_DEBUG_CHECKS
 					currentPosWrite = startPosStealF + 1;
 					startPosStealF = faceIndices[startPosStealF];
@@ -617,9 +605,7 @@ void Vertex::collapseUpdateTriangles(int indexCollapse, int indexToCollapseTo) {
 
 			}
 #ifndef NO_DEBUG_CHECKS
-			else {
-				// __debugbreak();
-			}
+			
 #endif // !NO_DEBUG_CHECKS
 		}
 

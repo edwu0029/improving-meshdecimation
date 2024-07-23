@@ -9,25 +9,20 @@
 #define LEFT_CHILD_NODE_ID (nodeId * 2 + 1)
 #define RIGHT_CHILD_NODE_ID (nodeId * 2 + 2)
 
-PriorityQueueSingleThreaded::PriorityQueueSingleThreaded(int countVertices) : m_mesh(ParallelMesh::getInstance())
+PriorityQueueSingleThreaded::PriorityQueueSingleThreaded(int countVertices) 
+	: size(countVertices)
+	, m_size(countVertices)
+	, m_tmpError(countVertices)
+	, m_nodes(countVertices)
+	, m_nodeLookup(countVertices)
+	, m_mesh(ParallelMesh::getInstance())
+	, m_last(countVertices - 1)
+	, m_repairCount(0)
 {
-	std::cout << "Started initalization" << std::endl;
-	size = countVertices;
-	m_size = countVertices;
-	m_nodes = std::vector<int>(m_size);
-	m_tmpError = std::vector<float>(m_size);
-
-	m_nodeLookup = std::vector<int>(m_size);
-
-	m_last = countVertices - 1;
-	m_repairCount = 0;
+	std::cout << "Started initalization with countVertices = " << countVertices << std::endl;
+	
 #ifndef SINGLE_THREADED_LOADING
 	m_vertexLocks = std::vector<std::mutex>(m_size);
-	// int spincount = 0x01001000;
-	// for (int i = 0; i < m_size; i++) {
-	// 	if (!InitializeCriticalSectionAndSpinCount(&m_vertexLocks[i], spincount))
-	// 		__debugbreak();
-	// }
 #endif
 }
 
@@ -53,8 +48,6 @@ int PriorityQueueSingleThreaded::pop()
 			float newError = m_mesh.getVertex(vertexId).setNextBestError();
 			m_tmpError[vertexId] = newError;
 #else
-			if (m_tmpError[vertexId] >= 1000000000000000000000000.0)
-				// __debugbreak();
 			m_tmpError[vertexId] +=  10000000000000000000000.0;
 #endif
 			int nextNodeId = 0;
@@ -78,10 +71,11 @@ int PriorityQueueSingleThreaded::pop()
 	while (nextNodeId != -1) {
 		nextNodeId = repairDown(nextNodeId);
 	}
+	size--;
 	return vertexId;
 }
 
-void PriorityQueueSingleThreaded::update(volatile int vertexId)
+void PriorityQueueSingleThreaded::update(int vertexId)
 {
 	float trueError = m_mesh.getVertexError(vertexId);
 	//m_mesh->getVertex(vertexId).unlock();
@@ -91,19 +85,13 @@ void PriorityQueueSingleThreaded::update(volatile int vertexId)
 	}
 	m_tmpError[vertexId] = trueError;
 
-	volatile int nodeId = m_nodeLookup[vertexId];
-	if (nodeId < 0)
-		// __debugbreak();
-	if (nodeId > m_last)
-		// __debugbreak();
+	int nodeId = m_nodeLookup[vertexId];
 	if (directionUp) {
 		bool finished = false;
 		while (!finished)
 		{
 			finished = repairUp(nodeId);
 			nodeId = PARENT_NODE_ID;
-			/*if ((m_nodeLookup[vertexId] != nodeId) && !finished)
-				// __debugbreak();*/
 		}
 		//m_locks[nodeId].clear(std::memory_order_release);
 	}
@@ -117,7 +105,7 @@ void PriorityQueueSingleThreaded::update(volatile int vertexId)
 
 void PriorityQueueSingleThreaded::debugCheckHeap()
 {
-	volatile int nodeId, parentNodeId;
+	int nodeId, parentNodeId;
 	for (nodeId = 1; nodeId < m_nodes.size(); nodeId++) {
 		if (nodeId > m_last - 2) // -2 because we ignore the next childs when they can be removed in the next 2 pops
 			return;
@@ -134,7 +122,7 @@ void PriorityQueueSingleThreaded::debugCheckHeap()
 			//float errdbp = m_nodes[(i - 1) / 2].getDebugError();
 			volatile float errvc = m_mesh.getVertexError(m_nodes[nodeId]);
 			volatile float errvp = m_mesh.getVertexError(m_nodes[parentNodeId]);
-			// __debugbreak();
+
 		}
 		if (m_tmpError[m_nodes[nodeId]] != m_mesh.getVertexError(m_nodes[nodeId]) && m_tmpError[m_nodes[nodeId]] < 100000000000000000000.0)
 		{
@@ -146,25 +134,25 @@ void PriorityQueueSingleThreaded::debugCheckHeap()
 			//float errdbp = m_nodes[(i - 1) / 2].getDebugError();
 			volatile float errvc = m_mesh.getVertexError(m_nodes[nodeId]);
 			volatile float errvp = m_mesh.getVertexError(m_nodes[parentNodeId]);
-			// __debugbreak();
+
 		}
 	}
 }
 
 int PriorityQueueSingleThreaded::repairDown(int nodeId)
 {
-	volatile int leftChildNodeId, rightChildNodeId;
+	int leftChildNodeId, rightChildNodeId;
 
 	leftChildNodeId = LEFT_CHILD_NODE_ID;
 	rightChildNodeId = RIGHT_CHILD_NODE_ID;	
-	volatile int nextNodeId;
+	int nextNodeId;
 	if (rightChildNodeId <= m_last) {
-		volatile int vertexIdLeft = m_nodes[leftChildNodeId];
-		volatile int vertexIdRight = m_nodes[rightChildNodeId];
+		int vertexIdLeft = m_nodes[leftChildNodeId];
+		int vertexIdRight = m_nodes[rightChildNodeId];
 
-		volatile float valueLeft = m_tmpError[vertexIdLeft];
-		volatile float valueRight = m_tmpError[vertexIdRight];
-		volatile int vertexId = m_nodes[nodeId];
+		float valueLeft = m_tmpError[vertexIdLeft];
+		float valueRight = m_tmpError[vertexIdRight];
+		int vertexId = m_nodes[nodeId];
 		if (valueLeft >= valueRight) {
 			if (valueRight < m_tmpError[vertexId]){
 				nextNodeId = rightChildNodeId;
@@ -180,7 +168,7 @@ int PriorityQueueSingleThreaded::repairDown(int nodeId)
 		}
 		else if (valueLeft < m_tmpError[vertexId]) {
 			nextNodeId = leftChildNodeId;
-			volatile int vertexIdChild = vertexIdLeft;
+			int vertexIdChild = vertexIdLeft;
 			m_nodeLookup[vertexId] = nextNodeId;
 			m_nodes[nextNodeId] = (vertexId);
 			m_nodeLookup[vertexIdChild] = nodeId;
@@ -191,12 +179,12 @@ int PriorityQueueSingleThreaded::repairDown(int nodeId)
 	}
 	else {
 		if (leftChildNodeId == m_last) {
-			volatile int vertexIdLeft = m_nodes[leftChildNodeId];
-			volatile float valueLeft = m_tmpError[vertexIdLeft];
-			volatile int vertexId = m_nodes[nodeId];
+			int vertexIdLeft = m_nodes[leftChildNodeId];
+			float valueLeft = m_tmpError[vertexIdLeft];
+			int vertexId = m_nodes[nodeId];
 			if (valueLeft < m_tmpError[vertexId]) {
 				nextNodeId = leftChildNodeId;
-				volatile int vertexIdChild = vertexIdLeft;
+				int vertexIdChild = vertexIdLeft;
 				m_nodeLookup[vertexId] = nextNodeId;
 				m_nodes[nextNodeId] = (vertexId);
 				m_nodeLookup[vertexIdChild] = nodeId;

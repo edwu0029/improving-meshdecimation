@@ -36,8 +36,7 @@ public:
 
 	inline void decreaseAdjacentCollapses(int vertexId) {
 		m_adjacentToCollapses[vertexId]--;
-		if(m_adjacentToCollapses[vertexId] < 0){}
-			// __debugbreak();
+
 	}
 
 	inline bool getAdjacentCollapses(int vertexId) {

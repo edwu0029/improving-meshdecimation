@@ -1,7 +1,7 @@
 all: mq_main
 H_FILES = defines.h ErrorMetric.h Examples.h FPPQ.h MeshMetrics.h MultiQueue.h ParallelMesh.h PriorityQueueSingleThreaded.h QuadricErrorMetric.h tiny_obj_loader.h Vertex.h UpdateMultiQueue.h
 CPP_FILES = FPPQMesh.cpp MeshSimplification.cpp MultiQueue.cpp ParallelMesh.cpp PriorityQueueSingleThreaded.cpp QuadricErrorMetric.cpp Vertex.cpp UpdateMultiQueue.cpp 
-CXXFLAGS = -g -Wall -std=c++2a 
+CXXFLAGS = -g -Wall -std=c++20 -O3 
 OPEN_MP_FLAGS = -fopenmp
 LINKING_FLAGS = -fopenmp -ltbb
 

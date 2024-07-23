@@ -39,16 +39,9 @@ MultiQueue::MultiQueue(int countVertices, int countQueues) : m_mesh(ParallelMesh
 	//int spincount = 0x01001000;
 #ifndef SINGLE_THREADED_LOADING
 	m_vertexLocks = std::vector<std::mutex>(m_size);
-	// for(int i = 0; i < m_size; i++) {
-	// 	if(!InitializeCriticalSectionAndSpinCount(&m_vertexLocks[i], spincount))
-	// 		__debugbreak();
-	// }
+
 #endif
 	m_queueLocks = std::vector<std::mutex>(m_countQueues);
-	// for(int i = 0; i < m_countQueues; i++) {
-	// 	if(!InitializeCriticalSectionAndSpinCount(&m_queueLocks[i], spincount))
-	// 		__debugbreak();
-	// }
 
 }
 
@@ -174,8 +167,6 @@ int MultiQueue::pop() {
 						m_tmpError[vertexId] = newError;
 
 #else
-						if(m_tmpError[vertexId] >= 1000000000000000000000000.0)
-							// __debugbreak();
 						m_tmpError[vertexId] += 10000000000000000000000.0;
 
 #endif // NEXT_BEST_ERROR
@@ -259,15 +250,13 @@ void MultiQueue::update(volatile int vertexId) {
 	m_tmpError[vertexId] = trueError;
 
 	int nodeId = getIndex(vertexNodeId, queueId);
-	if(nodeId < 0)
-		// __debugbreak();
+
 	if(directionUp) {
 		bool finished = false;
 		while(!finished) {
 			finished = repairUp(nodeId, queueId);
 			nodeId = PARENT_NODE_ID;
-			/*if ((m_nodeLookup[vertexId] != nodeId) && !finished)
-				// __debugbreak();*/
+
 		}
 		//m_locks[nodeId].clear(std::memory_order_release);
 	} else { // downwards

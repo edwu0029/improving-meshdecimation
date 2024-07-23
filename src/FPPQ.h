@@ -76,11 +76,9 @@ public:
 			int childNode2 = rightChildNodeIdAboveFilter(i);
 			int parentNode1 = parentNodeIdAboveFilter(childNode1);
 			int parentNode2 = parentNodeIdAboveFilter(childNode2);
-			if(parentNode1 != parentNode2 || parentNode1 != i){}
-				// __debugbreak();
 		}
 		for(int i = filteredElements - filterLevelSize; i < filterLevelEnd - filterLevelSize; i++) {
-			volatile int childNode1, childNode2, filterLevelOffset;
+			int childNode1, childNode2, filterLevelOffset;
 			filterLevelOffset = filterLevelDown(i);
 			if(filterConditionDown(i, filterLevelOffset))
 			{
@@ -91,7 +89,7 @@ public:
 				childNode2 = rightChildNodeId2InFilter(i, filterLevelOffset);
 			}
 			{
-				volatile int leftParentNodeId, rightParentNodeId;
+				int leftParentNodeId, rightParentNodeId;
 				int nodeId = childNode1;
 				filterLevelOffset = filterLevelUp(nodeId);
 				if(filterConditionUp(nodeId, filterLevelOffset))
@@ -102,11 +100,9 @@ public:
 					leftParentNodeId = leftParentNodeId2InFilter(nodeId, filterLevelOffset);
 					rightParentNodeId = parentNodeId1InFilter(nodeId);
 				}
-				if(!(leftParentNodeId == i || rightParentNodeId == i)){}
-					// __debugbreak();
 			}
 			{
-				volatile int leftParentNodeId, rightParentNodeId;
+				int leftParentNodeId, rightParentNodeId;
 				int nodeId = childNode2;
 				filterLevelOffset = filterLevelUp(nodeId);
 				if(filterConditionUp(nodeId, filterLevelOffset))
@@ -117,8 +113,6 @@ public:
 					leftParentNodeId = leftParentNodeId2InFilter(nodeId, filterLevelOffset);
 					rightParentNodeId = parentNodeId1InFilter(nodeId);
 				}
-				if(!(leftParentNodeId == i || rightParentNodeId == i)){}
-					// __debugbreak();
 			}
 
 
@@ -130,14 +124,12 @@ public:
 			int childNode2 = rightChildNodeIdBelowFilter(i);
 			int parentNode1 = parentNodeIdBelowFilter(childNode1);
 			int parentNode2 = parentNodeIdBelowFilter(childNode2);
-			if(parentNode1 != parentNode2 || parentNode1 != i){}
-				// __debugbreak();
 		}
 	}
 
 	// Checks if the heap is valid
 	void debugCheckHeap() {
-		volatile int nodeId, parentNodeId, leftParentNodeId, rightParentNodeId;
+		int nodeId, parentNodeId, leftParentNodeId, rightParentNodeId;
 		for(nodeId = 1; nodeId < m_last; nodeId++) {
 
 			if(nodeId > filterLevelEnd) {
@@ -155,23 +147,22 @@ public:
 					rightParentNodeId = parentNodeId1InFilter(nodeId);
 				}
 				if(m_tmpError[m_nodes[correctNodeId(nodeId)]] < m_tmpError[m_nodes[correctNodeId(leftParentNodeId)]] || m_tmpError[m_nodes[correctNodeId(nodeId)]] < m_tmpError[m_nodes[correctNodeId(rightParentNodeId)]]) {
-					volatile int vidc = m_nodes[correctNodeId(nodeId)];
-					volatile int vidlp = m_nodes[correctNodeId(leftParentNodeId)];
-					volatile int vidrp = m_nodes[correctNodeId(leftParentNodeId)];
-					volatile float errtc = m_tmpError[vidc];
-					volatile float errtlp = m_tmpError[vidlp];
-					volatile float errtrp = m_tmpError[vidrp];
-					// __debugbreak();
+					int vidc = m_nodes[correctNodeId(nodeId)];
+					int vidlp = m_nodes[correctNodeId(leftParentNodeId)];
+					int vidrp = m_nodes[correctNodeId(leftParentNodeId)];
+					float errtc = m_tmpError[vidc];
+					float errtlp = m_tmpError[vidlp];
+					float errtrp = m_tmpError[vidrp];
 				}
 				continue;
 			}
 
 			if(m_tmpError[m_nodes[correctNodeId(nodeId)]] < m_tmpError[m_nodes[correctNodeId(parentNodeId)]]) {
-				volatile int vidc = m_nodes[correctNodeId(nodeId)];
-				volatile int vidp = m_nodes[correctNodeId(parentNodeId)];
-				volatile float errtc = m_tmpError[vidc];
-				volatile float errtp = m_tmpError[vidp];
-				// __debugbreak();
+				int vidc = m_nodes[correctNodeId(nodeId)];
+				int vidp = m_nodes[correctNodeId(parentNodeId)];
+				float errtc = m_tmpError[vidc];
+				float errtp = m_tmpError[vidp];
+
 			}
 		}
 	}
@@ -327,10 +318,7 @@ inline FPPQ<T>::FPPQ(int maxCapacity) {
 	m_tmpError = std::vector<std::atomic<T>>(m_size);
 	m_nodeLookup = std::vector<std::atomic<int>>(m_size);
 	int spincount1 = 0x01001000;
-	for(int i = 0; i < m_size + m_countMemCollisionNodes * 15; i++) {
-		// if(!InitializeCriticalSectionAndSpinCount(&m_locks[i],spincount1)){}
-			// __debugbreak();
-	}
+	
 	for(int i = 0; i < m_size; i++) {
 		m_nodeLookup[i] = -1;
 	}
@@ -410,7 +398,7 @@ int FPPQ<T>::pop() {
 			lookupId = m_nodes[correctNodeId(popIndex)];
 			if(lookupId == -1) {
 				unlock(popIndex);
-				//// __debugbreak();
+
 				if(m_last < 0)
 					return -1;
 				popIndex = 0;
@@ -422,7 +410,7 @@ int FPPQ<T>::pop() {
 			// This should not happen
 			else if(m_nodeLookup[lookupId] == -1) {
 				unlock(popIndex);
-				// __debugbreak();
+
 				popIncreaseCount++;
 				lookupId = -1;
 			}
@@ -472,15 +460,9 @@ int FPPQ<T>::pop() {
 					}
 
 					m_notRepairedUp[lastLookupId] -= 1;
-				} else { 
-					if(lastIndex == popIndex) {
-						m_nodes[correctNodeId(lastIndex)] = (-1);
-						unlock(lastIndex);
-					} else {
-						// This should be impossible we are popping an element that is behind our last Index which can happen (because of multi-Threading) but should be prevented with the atomic CAS
-						// __debugbreak();
-						// throw std::exception("Invalid pop: popIndex after lastIndex");
-					}
+				} else if(lastIndex == popIndex) {
+					m_nodes[correctNodeId(lastIndex)] = (-1);
+					unlock(lastIndex);
 				}
 			}
 		}
@@ -628,7 +610,7 @@ void FPPQ<T>::update(int lookupId, T errorValue, bool fromInsertion) {
 			nodeId = m_nodeLookup[lookupId];
 			if(nodeId < 0) { // We are finished because node got popped in theory this should not happen (at least in mesh decimation. could happen in other use cases)
 				finished = true;
-				//// __debugbreak();
+
 			} else {
 				lock(nodeId);
 				if(m_nodes[correctNodeId(nodeId)] != lookupId) { // Element got swapped to different node in the meantime
@@ -650,8 +632,6 @@ void FPPQ<T>::update(int lookupId, T errorValue, bool fromInsertion) {
 template<typename T>
 void FPPQ<T>::insert(int lookupId, T errorValue) {
 
-	if(m_nodeLookup[lookupId] > 0) // Already inside queue
-		// __debugbreak();
 
 	m_notRepairedUp[lookupId] += 1;
 	m_tmpError[lookupId] = errorValue;
@@ -675,8 +655,7 @@ void FPPQ<T>::insert(int lookupId, T errorValue) {
 template<typename T>
 int FPPQ<T>::repairDown(int nodeId) // Assumes we have lock on nodeId
 {
-	if(nodeId < 0){}
-		// __debugbreak();
+
 	int nextNodeId = -1;
 	int leftChildNodeId, rightChildNodeId;
 
@@ -766,8 +745,6 @@ template<typename T>
 bool FPPQ<T>::repairUp(int nodeId, int lookupId, int parentNodeId, int parentlookupId) // Assumes lock of nodeId, parent nodeId und parent lookupId releases lock of nodId and keeps parent node lock
 {
 	float valueParent = m_tmpError[parentlookupId];
-	if(nodeId < 0)
-		// __debugbreak();
 	if(m_tmpError[lookupId] < valueParent) { // We are now smaller than the parent
 		// Node
 		m_nodeLookup[lookupId].store(parentNodeId); // swap

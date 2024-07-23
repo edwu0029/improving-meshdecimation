@@ -365,23 +365,14 @@ void ParallelMesh::debugCheckData(int activeException)
 					next = adjacentVertices[startPos];
 					for (int j = 0; j < slotSize; j++) {
 						if (!finished) {
-							if (std::find(foundVertices.begin(), foundVertices.end(), adjacentVertices[startPos + 1 + j]) != foundVertices.end()) {
-								// __debugbreak(); // Element multiple times in vector
+							if (adjacentVertices[startPos + 1 + j] != -1) {
+
+								foundVertices.push_back(adjacentVertices[startPos + 1 + j]);
+								isValidAdjacentVertex.push_back(false);
+							}else{
+								finished = true;
 							}
-							else {
-								if (adjacentVertices[startPos + 1 + j] != -1) {
-									if (activeException != adjacentVertices[startPos + 1 + j] && !m_vertices[adjacentVertices[startPos + 1 + j]].isActive())// nonActive Vertex in list
-										// __debugbreak();
-									foundVertices.push_back(adjacentVertices[startPos + 1 + j]);
-									isValidAdjacentVertex.push_back(false);
-								}
-								else
-									finished = true;
-							}
-						}
-						else {
-							if (adjacentVertices[startPos + 1 + j] != -1){}
-								// __debugbreak(); // not clean
+							
 						}
 					}
 					startPos = next;
@@ -391,8 +382,7 @@ void ParallelMesh::debugCheckData(int activeException)
 			{
 				auto& faceIndices = ParallelMesh::getInstance().m_faceIndices;
 				int startPos = (3*slotSize + 1) * i;
-				/*if (startPos == 4654)
-					// __debugbreak();*/
+
 				int next;
 				bool finished = false;
 				int numFaces = 0;
@@ -402,61 +392,27 @@ void ParallelMesh::debugCheckData(int activeException)
 						if (!finished) {						
 								
 							if (faceIndices[startPos + 1 + 3 * j] != -1) {
-								/*
-								if (faceIndices[startPos + 1 + 3 * j + 1] == -1)
-									// __debugbreak(); // not clean
-								else if (faceIndices[startPos + 1 + 3 * j + 2] == -1)
-									// __debugbreak(); // not clean
-								else if (faceIndices[startPos + 1 + 3 * j] == faceIndices[startPos + 1 + 3 * j + 1] || faceIndices[startPos + 1 + 3 * j] == faceIndices[startPos + 1 + 3 * j + 2] || faceIndices[startPos + 1 + 3 * j + 2] == faceIndices[startPos + 1 + 3 * j + 1])
-									// __debugbreak();
-								*/
 								numFaces++;
 								auto foundVertex = std::find(foundVertices.begin(), foundVertices.end(), faceIndices[startPos + 1 + 3 * j]);
 								if (foundVertex != foundVertices.end()) {
 									isValidAdjacentVertex[foundVertex - foundVertices.begin()] = true;
 								}
-								else {
-									// __debugbreak();
-								}
 								foundVertex = std::find(foundVertices.begin(), foundVertices.end(), faceIndices[startPos + 1 + 3 * j + 1]);
 								if (foundVertex != foundVertices.end()) {
 									isValidAdjacentVertex[foundVertex - foundVertices.begin()] = true;
-								}
-								else {
-									// __debugbreak();
 								}
 								foundVertex = std::find(foundVertices.begin(), foundVertices.end(), faceIndices[startPos + 1 + 3 * j + 2]);
 								if (foundVertex != foundVertices.end()) {
 									isValidAdjacentVertex[foundVertex - foundVertices.begin()] = true;
 								}
-								else {
-									// __debugbreak();
-								}
-								
 							}
-							else
+							else{
 								finished = true;
-							
-						}
-						else {
-							/*
-							if (faceIndices[startPos + 1 + 3 * j] != -1)
-								// __debugbreak(); // not clean
-							if (faceIndices[startPos + 1 + 3 * j + 1] != -1)
-								// __debugbreak(); // not clean
-							if (faceIndices[startPos + 1 + 3 * j + 2] != -1)
-								// __debugbreak(); // not clean
-							*/
+							}
 						}
 					}
 					startPos = next;
 				}
-				if (numFaces < 3){}
-					// __debugbreak();
-			}
-			for (bool b : isValidAdjacentVertex) {
-				if (!b){}
-					// __debugbreak();
 			}
 		}
 	}

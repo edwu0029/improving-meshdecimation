@@ -11,10 +11,10 @@ const float DECIMATION_PERCENT = 5; // For decimation to 1% of verticies, use 1
 constexpr int slotSize = 8;
 const int NUM_THREADS = 1;
 
-constexpr int countIterations = 1;
+constexpr int countIterations = 3;
 
-//#define MULTI_QUEUE
-#define SINGLE_THREADED
+#define MULTI_QUEUE
+//#define SINGLE_THREADED
 #define NEXT_BEST_ERROR // If the collapse is invalid (topology check) the next best vertex to collapse to is searched instead and the PQ updated instead of disallowing HECs from this vertex 
 #define TRIANGLE_INDICES // Uses Triangle indices instead of saving every triangle in every vertex (faster)
 #define SINGLE_THREADED_LOADING // makes the loading single threaded MT seems to work but was not used for the benchmarks (because loading is not included in the total times)
